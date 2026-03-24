@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BGSI Market Helper</title>
+<link rel="icon" type="image/png" href="https://i.ibb.co/h1Rx9PPB/thenewicon.png"/>
+<!-- Discord / Twitter embed -->
+<meta property="og:title" content="BGSI Market Helper"/>
+<meta property="og:description" content="Live pet values, deal alerts and market tracking for Bubble Gum Simulator Infinity. Members only."/>
+<meta property="og:image" content="https://i.ibb.co/h1Rx9PPB/thenewicon.png"/>
+<meta property="og:url" content="https://bgsitousd.netlify.app"/>
+<meta property="og:type" content="website"/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="BGSI Market Helper"/>
+<meta name="twitter:description" content="Live pet values, deal alerts and market tracking for Bubble Gum Simulator Infinity."/>
+<meta name="twitter:image" content="https://i.ibb.co/h1Rx9PPB/thenewicon.png"/>
+<meta name="theme-color" content="#00e676"/>
+<style>
+:root{--border:#1a1a1a;--border2:#252525;--win:#00e676;--lose:#ff4444;--muted:#555;--bg:#050505;--surface:#0c0c0c;--surface2:#111;--text:#e0e0e0;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);display:flex;height:100vh;overflow:hidden;flex-direction:column;font-size:13px;}
+
+/* LOGIN GATE */
+#loginGate{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;}
+#loginGate.hidden{display:none;}
+.login-box{text-align:center;max-width:360px;padding:32px;}
+.login-logo{font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#fff;margin-bottom:24px;}
+.login-title{font-size:22px;font-weight:800;color:#fff;margin-bottom:8px;}
+.login-sub{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:28px;}
+.discord-btn{display:inline-flex;align-items:center;gap:10px;background:#5865F2;color:#fff;border:none;padding:12px 24px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:.15s;}
+.discord-btn:hover{background:#4752c4;}
+.discord-btn svg{width:20px;height:20px;flex:0 0 auto;}
+.login-note{font-size:10px;color:#2a2a2a;margin-top:16px;}
+
+/* TOPBAR */
+.topbar{height:46px;display:flex;align-items:center;padding:0 14px;border-bottom:1px solid var(--border);background:rgba(5,5,5,.98);flex:0 0 auto;z-index:5;gap:10px;}
+.topbar-brand{font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#fff;min-width:60px;}
+.topbar-tabs{display:flex;gap:1px;align-items:center;flex:1;overflow-x:auto;scrollbar-width:none;}
+.topbar-tabs::-webkit-scrollbar{display:none;}
+.tab-btn{background:none;border:none;color:var(--muted);padding:5px 11px;font-size:11px;font-weight:600;border-radius:5px;cursor:pointer;transition:.12s;white-space:nowrap;font-family:inherit;}
+.tab-btn:hover{color:var(--text);background:var(--surface2);}
+.tab-btn.active{color:#fff;background:var(--surface2);box-shadow:inset 0 0 0 1px var(--border2);}
+.avatar-pill{display:flex;align-items:center;gap:7px;cursor:pointer;padding:3px 7px 3px 3px;border-radius:20px;transition:.12s;flex:0 0 auto;border:1px solid var(--border);}
+.avatar-pill:hover{background:var(--surface2);border-color:var(--border2);}
+.avatar-pill img{width:26px;height:26px;border-radius:50%;object-fit:cover;}
+.avatar-pill span{font-size:11px;font-weight:600;color:var(--muted);max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* LAYOUT */
+.layout{display:flex;flex:1 1 auto;min-height:0;overflow:hidden;}
+.sidebar{width:320px;border-right:1px solid var(--border);display:flex;flex-direction:column;background:var(--surface);min-height:0;overflow:hidden;flex:0 0 auto;}
+.sidebar.hidden{display:none;}
+.sidebar-header{padding:10px;border-bottom:1px solid var(--border);flex:0 0 auto;}
+.search-box{width:100%;background:var(--bg);border:1px solid var(--border2);padding:8px 11px;color:#fff;border-radius:6px;outline:none;font-size:12px;font-family:inherit;}
+.search-box:focus{border-color:#2e2e2e;}
+.filter-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:3px;margin-top:7px;}
+.fbtn{background:var(--bg);border:1px solid var(--border);color:var(--muted);padding:5px 3px;font-size:8px;cursor:pointer;font-weight:700;text-transform:uppercase;letter-spacing:.3px;border-radius:4px;transition:.12s;font-family:inherit;}
+.fbtn:hover{border-color:var(--border2);color:var(--text);}
+.fbtn.active{background:#fff;color:#000;border-color:#fff;}
+.load-bar-wrap{padding:0 10px 5px;flex:0 0 auto;}
+.load-bar-track{height:1px;background:var(--border);overflow:hidden;}
+.load-bar-fill{height:100%;background:#333;width:0%;transition:width .3s;}
+.load-lbl{font-size:9px;color:#2a2a2a;margin-top:2px;}
+#petList{flex:1 1 auto;min-height:0;overflow-y:auto;padding:6px;scrollbar-width:thin;scrollbar-color:#1a1a1a transparent;}
+#petList::-webkit-scrollbar{width:2px;}
+#petList::-webkit-scrollbar-thumb{background:#1a1a1a;}
+.pet-item{background:transparent;border:1px solid transparent;padding:7px;margin-bottom:3px;display:flex;align-items:center;cursor:pointer;transition:.1s;border-radius:7px;}
+.pet-item:hover{border-color:var(--border);background:var(--surface2);}
+.pet-img{width:36px;height:36px;border-radius:5px;margin-right:9px;background:var(--bg);object-fit:contain;flex:0 0 auto;}
+.pet-info{flex:1;min-width:0;}
+.pet-name{font-size:12px;font-weight:600;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text);}
+.pet-variant{font-size:9px;color:#333;text-transform:uppercase;font-weight:600;margin-top:1px;letter-spacing:.3px;}
+.pet-meta{display:flex;gap:3px;margin-top:3px;flex-wrap:wrap;}
+.chip{font-size:7.5px;text-transform:uppercase;letter-spacing:.3px;padding:1px 4px;border:1px solid var(--border);color:#3a3a3a;border-radius:3px;white-space:nowrap;}
+.chip.d-insane{color:#c084fc;border-color:rgba(192,132,252,.2);}
+.chip.d-veryhigh{color:#60a5fa;border-color:rgba(96,165,250,.2);}
+.chip.d-high{color:#4ade80;border-color:rgba(74,222,128,.18);}
+.chip.d-medium{color:#facc15;border-color:rgba(250,204,21,.18);}
+.chip.d-low{color:#f87171;border-color:rgba(248,113,113,.18);}
+.chip.d-verylow{color:#fb923c;border-color:rgba(251,146,60,.18);}
+.chip.good{color:var(--win);border-color:rgba(0,230,118,.15);}
+.chip.bad{color:var(--lose);border-color:rgba(255,68,68,.15);}
+.pet-val{color:var(--text);font-weight:700;font-size:12px;text-align:right;flex:0 0 auto;}
+.pagination{flex:0 0 auto;padding:7px 10px;display:flex;justify-content:space-between;border-top:1px solid var(--border);align-items:center;}
+
+/* MAIN */
+.main-content{flex:1 1 auto;min-width:0;min-height:0;overflow-y:auto;padding:20px 24px;display:flex;align-items:flex-start;justify-content:center;scrollbar-width:thin;scrollbar-color:#1a1a1a transparent;}
+.calc-box{width:100%;max-width:760px;}
+.pane{display:none;}.pane.active{display:block;}
+
+/* INPUTS */
+.iw{margin-bottom:9px;}
+label{font-size:9px;color:var(--muted);text-transform:uppercase;margin-bottom:5px;display:block;font-weight:700;letter-spacing:.8px;}
+input,select{width:100%;background:var(--surface);border:1px solid var(--border2);padding:10px 12px;color:#fff;font-size:13px;outline:none;border-radius:6px;transition:.12s;font-family:inherit;}
+input:focus,select:focus{border-color:#2e2e2e;}
+select:disabled{opacity:.35;cursor:not-allowed;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:7px;}
+
+/* VERDICT */
+.verdict-block{text-align:center;margin-bottom:16px;padding:20px 12px;border-radius:10px;border:1px solid var(--border);background:var(--surface);transition:.15s;}
+.verdict-block.win{border-color:rgba(0,230,118,.18);background:rgba(0,230,118,.03);}
+.verdict-block.lose{border-color:rgba(255,68,68,.18);background:rgba(255,68,68,.03);}
+.verdict-block.fair{border-color:rgba(255,255,255,.07);background:rgba(255,255,255,.015);}
+.verdict-label{font-size:34px;font-weight:800;letter-spacing:-1px;color:#1e1e1e;transition:.15s;}
+.verdict-block.win .verdict-label{color:var(--win);}
+.verdict-block.lose .verdict-label{color:var(--lose);}
+.verdict-block.fair .verdict-label{color:#fff;}
+.verdict-sub{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-top:5px;font-weight:600;}
+.preview{height:56px;display:flex;justify-content:center;align-items:center;margin-bottom:10px;opacity:0;transition:opacity .2s;}
+.preview.active{opacity:1;}
+.preview img{width:52px;height:52px;object-fit:contain;}
+.stat-row{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px;}
+.stat-card{border:1px solid var(--border);background:var(--surface);border-radius:7px;padding:11px;}
+.stat-card span{display:block;font-size:9px;color:var(--muted);text-transform:uppercase;margin-bottom:4px;letter-spacing:.8px;}
+.stat-card b{font-size:15px;color:#fff;font-weight:700;}
+.out-row{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px;}
+.out-card{border:1px solid var(--border);background:var(--surface);border-radius:7px;padding:11px;}
+.out-card span{display:block;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;}
+.out-card b{font-size:14px;font-weight:700;color:#fff;}
+.sec{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#2a2a2a;margin-bottom:9px;margin-top:18px;}
+.sec:first-child{margin-top:0;}
+
+/* DEALS */
+.deals-bar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:10px;}
+.deals-status{font-size:10px;color:var(--muted);flex:1;min-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ms{background:var(--surface);border:1px solid var(--border2);color:var(--text);padding:6px 9px;border-radius:5px;font-size:11px;font-weight:600;outline:none;cursor:pointer;font-family:inherit;width:auto;}
+.deals-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;}
+@media(max-width:800px){.deals-grid{grid-template-columns:1fr;}}
+.deal-card{border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:9px;display:flex;gap:7px;align-items:center;min-width:0;}
+.deal-card.is-win{border-color:rgba(0,230,118,.15);background:rgba(0,230,118,.025);}
+.deal-card.is-nearwin{border-color:rgba(251,146,60,.12);background:rgba(251,146,60,.015);}
+.deal-img{width:38px;height:38px;border-radius:6px;background:var(--bg);object-fit:contain;flex:0 0 auto;}
+.deal-mid{flex:1;min-width:0;}
+.deal-name{font-size:11.5px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.deal-variant{font-size:8.5px;color:#2e2e2e;text-transform:uppercase;letter-spacing:.4px;font-weight:600;margin-top:1px;}
+.deal-meta{margin-top:4px;display:flex;gap:3px;flex-wrap:wrap;align-items:center;}
+.deal-right{text-align:right;flex:0 0 auto;min-width:110px;}
+.deal-price{font-size:17px;font-weight:800;color:#fff;letter-spacing:-.3px;}
+.deal-fair{font-size:9px;color:#2e2e2e;margin-top:2px;}
+.deal-sav{font-size:12px;font-weight:800;margin-top:3px;}
+.deal-sav.sw{color:var(--win);}
+.deal-sav.sl{color:var(--lose);}
+.badge{font-size:7.5px;text-transform:uppercase;letter-spacing:.5px;font-weight:800;padding:2px 5px;border-radius:3px;border:1px solid var(--border);color:#2e2e2e;display:inline-flex;align-items:center;white-space:nowrap;}
+.badge.win{color:var(--win);border-color:rgba(0,230,118,.2);}
+.badge.lose{color:var(--lose);border-color:rgba(255,68,68,.18);}
+.badge.fair{color:#888;border-color:#222;}
+.badge.nearwin{color:#fb923c;border-color:rgba(251,146,60,.22);}
+.badge.na{color:#222;}
+.copy-btn{background:transparent;border:1px solid var(--border);color:#2a2a2a;padding:2px 6px;font-size:7.5px;font-weight:700;border-radius:3px;cursor:pointer;font-family:inherit;transition:.1s;}
+.copy-btn:hover{color:var(--text);border-color:var(--border2);}
+.deals-footer{margin-top:8px;display:flex;gap:7px;align-items:center;justify-content:space-between;}
+#nearWinWrap{display:none;align-items:center;gap:5px;}
+
+/* BUTTONS */
+.btn{background:#fff;color:#000;border:none;padding:8px 14px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;border-radius:6px;cursor:pointer;transition:.12s;white-space:nowrap;font-family:inherit;}
+.btn:hover{background:#ddd;}
+.btn.sec{background:transparent;color:var(--muted);border:1px solid var(--border2);}
+.btn.sec:hover{color:var(--text);border-color:#2e2e2e;}
+.btn.grn{background:rgba(0,230,118,.1);color:var(--win);border:1px solid rgba(0,230,118,.18);}
+.btn.grn:hover{background:rgba(0,230,118,.18);}
+.btn.red{background:rgba(255,68,68,.1);color:var(--lose);border:1px solid rgba(255,68,68,.2);}
+.btn.red:hover{background:rgba(255,68,68,.2);}
+
+/* BUDGET */
+.bstat{border:1px solid var(--border);background:var(--surface);border-radius:7px;padding:11px;}
+.bstat span{display:block;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;}
+.bstat b{font-size:18px;font-weight:800;color:#fff;}
+.bstat input{background:transparent;border:none;font-size:18px;font-weight:800;color:#fff;padding:0;outline:none;width:100%;font-family:inherit;}
+.brow{display:flex;align-items:center;gap:9px;padding:9px 11px;background:var(--surface);border-radius:9px;border:1px solid var(--border);margin-bottom:5px;}
+.scan-bar{height:2px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:9px;}
+.scan-fill{height:100%;background:var(--win);border-radius:2px;width:0%;transition:width .35s;}
+.note{border:1px solid var(--border);background:var(--surface);padding:13px;border-radius:7px;color:var(--muted);font-size:12px;line-height:1.6;}
+.note b{color:var(--text);}
+.warn{color:#fb923c;font-weight:700;font-size:11px;margin-top:7px;}
+
+/* PROFILE PAGE */
+.profile-page-header{display:flex;align-items:center;gap:20px;padding:24px;border:1px solid var(--border);background:var(--surface);border-radius:12px;margin-bottom:16px;}
+.profile-page-avatar{width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid var(--border2);flex:0 0 auto;}
+.profile-page-name{font-size:22px;font-weight:800;color:#fff;letter-spacing:-.5px;}
+.profile-page-sub{font-size:11px;color:var(--muted);margin-top:3px;letter-spacing:.3px;}
+.profile-page-actions{margin-left:auto;display:flex;gap:7px;align-items:center;}
+.port-stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;}
+.port-stat{border:1px solid var(--border);background:var(--surface);border-radius:8px;padding:12px;}
+.port-stat span{display:block;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;}
+.port-stat b{font-size:18px;font-weight:800;color:#fff;}
+.port-pet-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:9px;margin-bottom:5px;transition:.1s;}
+.port-pet-row:hover{border-color:var(--border2);}
+.port-pet-img{width:40px;height:40px;border-radius:6px;background:var(--bg);object-fit:contain;flex:0 0 auto;}
+.port-pet-info{flex:1;min-width:0;}
+.port-pet-name{font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.port-pet-meta{font-size:9px;color:#333;text-transform:uppercase;margin-top:2px;}
+.port-pet-change{font-size:10px;font-weight:700;margin-top:3px;}
+.port-pet-change.up{color:var(--win);}
+.port-pet-change.down{color:var(--lose);}
+.port-pet-change.flat{color:#333;}
+.port-pet-right{text-align:right;flex:0 0 auto;min-width:120px;}
+.port-pet-val{font-size:15px;font-weight:800;color:#fff;}
+.port-pet-paid{font-size:10px;color:var(--muted);margin-top:2px;}
+.port-pet-pnl{font-size:11px;font-weight:800;margin-top:2px;}
+.port-pet-pnl.up{color:var(--win);}
+.port-pet-pnl.down{color:var(--lose);}
+
+/* ADD PET MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:1000;display:none;align-items:center;justify-content:center;padding:16px;}
+.modal-overlay.show{display:flex;}
+.modal-box{background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:20px;width:100%;max-width:420px;}
+.modal-title{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#fff;margin-bottom:14px;}
+
+/* SETTINGS */
+.wh-mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:5px;}
+.wlwrap{display:flex;flex-wrap:wrap;gap:4px;min-height:22px;margin-bottom:9px;}
+.wlchip{display:inline-flex;align-items:center;gap:4px;background:var(--surface2);border:1px solid var(--border2);border-radius:4px;padding:3px 6px;font-size:9.5px;font-weight:600;color:#bbb;}
+.wlchip img{width:15px;height:15px;object-fit:contain;border-radius:2px;}
+.wlchip button{background:none;border:none;color:#2e2e2e;cursor:pointer;font-size:11px;padding:0 0 0 2px;}
+.wlchip button:hover{color:var(--lose);}
+.dropdown{position:absolute;top:100%;left:0;right:0;z-index:100;background:#080808;border:1px solid var(--border2);border-radius:6px;max-height:150px;overflow-y:auto;margin-top:3px;}
+.ddi{display:flex;align-items:center;gap:7px;padding:6px 9px;cursor:pointer;border-bottom:1px solid var(--border);}
+.ddi:hover{background:var(--surface2);}
+/* VARIANT GRADIENTS */
+.vc-normal{color:#e0e0e0;font-weight:700;}
+.vc-shiny{display:inline-block;background:linear-gradient(90deg,#f59e0b,#fde68a,#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;color:transparent;font-weight:800;}
+.vc-mythic{display:inline-block;background:linear-gradient(90deg,#a855f7,#e879f9,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;color:transparent;font-weight:800;}
+.vc-sm{display:inline-block;background:linear-gradient(90deg,#20b19a,#5eead4,#20b19a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;color:transparent;font-weight:800;}
+</style>
+</head>
+<body>
+
+<div id="loginGate">
+  <div class="login-box">
+    <div class="login-logo">BGSI Market Helper</div>
+    <div class="login-title">Members Only</div>
+    <div class="login-sub">You must be in the BGSI Market Discord server to access this tool.</div>
+    <button class="discord-btn" onclick="loginWithDiscord()">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+      Login with Discord
+    </button>
+    <div class="login-note">Only BGSI Market server members can log in.</div>
+  </div>
+</div>
+
+<!-- IMPORT ORDERS MODAL -->
+<div class="modal-overlay" id="importModal">
+  <div class="modal-box" style="max-width:560px;">
+    <div class="modal-title">Import from bloxy.trade</div>
+    <p style="font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.6;">Go to your bloxy.trade <b style="color:var(--text)">Orders</b> page, select all text on the page (Ctrl+A / Cmd+A), copy it, and paste below. Completed pet purchases will be imported automatically — deposits and expired orders are skipped.</p>
+    <div class="iw"><label>Paste Order History</label>
+      <textarea id="importText" style="width:100%;height:150px;background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:10px;border-radius:6px;font-size:12px;font-family:inherit;outline:none;resize:vertical;line-height:1.5;" placeholder="Paste your bloxy.trade order history here..."></textarea>
+    </div>
+    <div style="display:flex;gap:7px;margin-top:4px;">
+      <button class="btn" onclick="runImport()" style="flex:1;">Import Pets</button>
+      <button class="btn sec" onclick="closeImport()">Cancel</button>
+    </div>
+    <div id="importStatus" style="font-size:11px;margin-top:8px;color:var(--muted);line-height:1.6;min-height:16px;"></div>
+  </div>
+</div>
+
+<!-- ADD PET MODAL -->
+<div class="modal-overlay" id="addPetModal">
+  <div class="modal-box">
+    <div class="modal-title">Add Pet to Profile</div>
+    <div class="iw"><label>Pet Name</label>
+      <div style="position:relative;">
+        <input id="portSearch" type="text" placeholder="Search for a pet..." oninput="portSearchInput()" autocomplete="off">
+        <div id="portDropdown" class="dropdown" style="display:none;"></div>
+      </div>
+    </div>
+    <div class="g2">
+      <div class="iw"><label>Price Paid ($)</label><input id="portPricePaid" type="number" step="0.01" placeholder="0.00"></div>
+      <div class="iw"><label>Date Bought</label><input id="portDate" type="date"></div>
+    </div>
+    <div class="iw"><label>Notes (optional)</label><input id="portNotes" type="text" placeholder="e.g. bought from trade"></div>
+    <div style="display:flex;gap:7px;margin-top:4px;">
+      <button class="btn" onclick="savePortPet()" style="flex:1;">Add to Profile</button>
+      <button class="btn sec" onclick="closeAddPet()">Cancel</button>
+    </div>
+    <div id="portAddStatus" style="font-size:11px;margin-top:7px;color:var(--muted);"></div>
+  </div>
+</div>
+
+<div class="topbar">
+  <div class="topbar-brand">BGSI</div>
+  <div class="topbar-tabs">
+    <button class="tab-btn active" id="tab-buy" onclick="setTab('buy')">Pet Buying</button>
+    <button class="tab-btn" id="tab-sell" onclick="setTab('sell')">Pet Selling</button>
+    <button class="tab-btn" id="tab-withdraw" onclick="setTab('withdraw')">Withdraw</button>
+    <button class="tab-btn" id="tab-deals" onclick="setTab('deals')">Deals</button>
+    <button class="tab-btn" id="tab-budget" onclick="setTab('budget')">Budget</button>
+    <button class="tab-btn" id="tab-info" onclick="setTab('info')">Info</button>
+    <button class="tab-btn" id="tab-settings" onclick="setTab('settings')">Settings</button>
+  </div>
+  <div class="avatar-pill" id="avatarPill" style="display:none;" onclick="setTab('profile')">
+    <img id="userAvatar" src="" alt="">
+    <span id="userName"></span>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <input class="search-box" id="petSearch" type="text" placeholder="Search pets..." oninput="handleSearch()">
+      <div class="filter-grid">
+        <button class="fbtn active" id="f-Normal" onclick="setFilter('Normal')">Normal</button>
+        <button class="fbtn" id="f-Shiny" onclick="setFilter('Shiny')">Shiny</button>
+        <button class="fbtn" id="f-Mythic" onclick="setFilter('Mythic')">Mythic</button>
+        <button class="fbtn" id="f-ShinyMythic" onclick="setFilter('ShinyMythic')">S-M</button>
+        <button class="fbtn" id="f-XL" onclick="setFilter('XL')">XL</button>
+        <button class="fbtn" id="f-ShinyXL" onclick="setFilter('ShinyXL')">S-XL</button>
+      </div>
+    </div>
+    <div class="load-bar-wrap" id="loadBarWrap" style="display:none;">
+      <div class="load-bar-track"><div class="load-bar-fill" id="loadBarFill"></div></div>
+      <div class="load-lbl" id="loadLbl"></div>
+    </div>
+    <div id="petList">Initializing...</div>
+    <div class="pagination">
+      <button class="fbtn" onclick="changePage(-1)">&#8592;</button>
+      <span id="pageLabel" style="font-size:10px;color:#2a2a2a;font-weight:700;">1</span>
+      <button class="fbtn" onclick="changePage(1)">&#8594;</button>
+    </div>
+  </div>
+
+  <div class="main-content" id="mainContainer">
+    <div class="calc-box">
+
+      <!-- BUY -->
+      <div class="pane active" id="pane-buy">
+        <div class="verdict-block" id="buyVerdict"><div class="verdict-label" id="resTitle">—</div><div class="verdict-sub">Select a pet &amp; enter a price</div></div>
+        <div class="preview" id="prevBuy"><img id="prevBuyImg" src="" alt=""></div>
+        <div class="iw"><label>Pet Value</label><input id="valInput" type="text" placeholder="Select from list or type e.g. 15M" oninput="calculate()"></div>
+        <div class="iw"><label>Price (USD)</label><input id="priceInput" type="number" step="0.01" placeholder="0.00" oninput="calculate()"></div>
+        <div class="g2">
+          <div class="iw"><label>Demand</label><select id="demandFull" disabled><option value="">Unknown</option><option>Very Low</option><option>Low</option><option>Medium</option><option>High</option><option>Very High</option><option>Insane</option></select></div>
+          <div class="iw"><label>Trend</label><select id="trend" disabled><option>Stable</option><option>Rising</option><option>Dropping</option></select></div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-card"><span>Fair Range</span><b id="fairRange">—</b></div>
+          <div class="stat-card"><span>Your Rate / 1K</span><b id="paidRate">—</b></div>
+        </div>
+      </div>
+
+      <!-- SELL -->
+      <div class="pane" id="pane-sell">
+        <div class="verdict-block"><div class="verdict-label" style="color:#fff;font-size:26px;">Sell Price</div><div class="verdict-sub">Suggested listing price</div></div>
+        <div class="preview" id="prevSell"><img id="prevSellImg" src="" alt=""></div>
+        <div class="iw"><label>Pet Value</label><input id="sellValInput" type="text" placeholder="Select from list or type e.g. 15M" oninput="calcSell()"></div>
+        <div class="g2">
+          <div class="iw"><label>Demand</label><select id="sellDemand" disabled><option value="">Unknown</option><option>Very Low</option><option>Low</option><option>Medium</option><option>High</option><option>Very High</option><option>Insane</option></select></div>
+          <div class="iw"><label>Trend</label><select id="sellTrend" disabled><option>Stable</option><option>Rising</option><option>Dropping</option></select></div>
+        </div>
+        <div class="out-row">
+          <div class="out-card"><span>Sell Range</span><b id="sellRange">—</b></div>
+          <div class="out-card"><span>Suggested Price</span><b id="sellSuggest" style="color:var(--win);">—</b></div>
+        </div>
+      </div>
+
+      <!-- WITHDRAW -->
+      <div class="pane" id="pane-withdraw">
+        <div class="sec">Withdraw Calculator</div>
+        <div class="iw"><label>Method</label><select id="wdMethod" onchange="calcWithdraw()"><option value="paypal">PayPal</option><option value="btc">Bitcoin</option><option value="other" selected>Other / Custom</option></select></div>
+        <div class="iw"><label>Amount (USD)</label><input id="wdAmount" type="number" step="0.01" placeholder="0.00" oninput="calcWithdraw()"></div>
+        <div class="g2">
+          <div class="iw"><label>Flat Fee ($)</label><input id="wdFlat" type="number" step="0.01" placeholder="0.00" oninput="calcWithdraw()"></div>
+          <div class="iw"><label>Percent Fee (%)</label><input id="wdPct" type="number" step="0.01" placeholder="0.00" oninput="calcWithdraw()"></div>
+        </div>
+        <div class="out-row">
+          <div class="out-card"><span>Total Fees</span><b id="wdFees">$0.00</b></div>
+          <div class="out-card"><span>You Receive</span><b id="wdReceive">$0.00</b></div>
+        </div>
+        <div class="warn" id="wdWarn" style="display:none;">Min withdrawal is $10.</div>
+      </div>
+
+      <!-- DEALS -->
+      <div class="pane" id="pane-deals">
+        <div class="deals-bar">
+          <span class="deals-status" id="dealsStatus">Connecting...</span>
+          <select id="dealsFilter" class="ms" onchange="onDealsFilterChange()"><option value="all" selected>All Deals</option><option value="win">Wins Only</option><option value="fair">Wins + Fair</option><option value="nearwin">Near Win</option></select>
+          <div id="nearWinWrap">
+            <span style="font-size:9px;color:#333;font-weight:700;text-transform:uppercase;white-space:nowrap;">Within</span>
+            <select id="nearWinThresh" class="ms" onchange="renderDeals()"><option value="0.10">$0.10</option><option value="0.25">$0.25</option><option value="0.50">$0.50</option><option value="1.00" selected>$1.00</option><option value="2.00">$2.00</option><option value="3.00">$3.00</option><option value="4.00">$4.00</option><option value="5.00">$5.00</option><option value="6.00">$6.00</option></select>
+          </div>
+          <select id="dealsSort" class="ms" onchange="renderDeals()"><option value="savings">Best Savings</option><option value="price_asc">Price: Low</option><option value="price_desc" selected>Price: High</option><option value="value_desc">Value: High</option></select>
+          <button class="btn sec" onclick="refreshDeals()" style="padding:6px 10px;">Refresh</button>
+        </div>
+        <div class="deals-grid" id="dealsGrid"><div class="note" style="grid-column:1/-1;">Loading all pages...</div></div>
+        <div class="deals-footer">
+          <span style="font-size:9px;color:#222;" id="dealsCountLabel">0 listings</span>
+          <div style="display:flex;gap:4px;align-items:center;">
+            <button class="fbtn" onclick="changeDealsPage(-1)">&#8592;</button>
+            <span id="dealsPageLabel" style="font-size:10px;color:#2a2a2a;padding:0 4px;">1</span>
+            <button class="fbtn" onclick="changeDealsPage(1)">&#8594;</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- BUDGET -->
+      <div class="pane" id="pane-budget">
+        <div class="sec">Budget Optimizer</div>
+        <div class="g3" style="margin-bottom:10px;">
+          <div class="bstat"><span>Budget ($)</span><input id="budgetAmt" type="number" step="0.01" placeholder="100.00"></div>
+          <div class="bstat"><span>Best Value</span><b id="budgetBestVal">—</b></div>
+          <div class="bstat"><span>Avg Rate / 1K</span><b id="budgetBestRate">—</b></div>
+        </div>
+        <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;margin-bottom:7px;">
+          <button class="btn" onclick="startBudgetScan()">Scan Market</button>
+          <button class="btn sec" onclick="stopBudgetScan()">Stop</button>
+          <button class="btn grn" onclick="startAutoScan()">Best Value Auto</button>
+          <span id="budgetStatus" style="font-size:10px;color:var(--muted);font-weight:600;"></span>
+        </div>
+        <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
+          <div style="display:flex;align-items:center;gap:4px;">
+            <span style="font-size:9px;color:#333;text-transform:uppercase;letter-spacing:.6px;font-weight:700;">Min Value</span>
+            <select id="budgetMinVal" class="ms" onchange="onBudgetMinValChange()"><option value="0">Any</option><option value="50000">50K+</option><option value="75000">75K+</option><option value="100000" selected>100K+</option><option value="250000">250K+</option><option value="500000">500K+</option><option value="1000000">1M+</option><option value="5000000">5M+</option><option value="10000000">10M+</option><option value="custom">Custom...</option></select>
+            <input id="budgetMinValCustom" type="number" placeholder="e.g. 300000" style="display:none;width:105px;padding:6px 8px;font-size:11px;background:var(--surface);border:1px solid var(--border2);color:#fff;border-radius:5px;outline:none;font-family:inherit;">
+          </div>
+          <div style="display:flex;align-items:center;gap:4px;">
+            <span style="font-size:9px;color:#333;text-transform:uppercase;letter-spacing:.6px;font-weight:700;">Max/Pet</span>
+            <select id="budgetMaxSame" class="ms"><option value="1" selected>1 copy</option><option value="2">2 copies</option><option value="3">3 copies</option><option value="5">5 copies</option></select>
+          </div>
+        </div>
+        <div class="scan-bar"><div class="scan-fill" id="budgetScanFill"></div></div>
+        <div id="budgetResults"><div class="note">Enter a budget and click <b>Scan Market</b>. Use <b>Best Value Auto</b> to find the highest total value across all thresholds.</div></div>
+      </div>
+
+      <!-- PROFILE (full page) -->
+      <div class="pane" id="pane-profile">
+        <div class="profile-page-header">
+          <img class="profile-page-avatar" id="profilePageAv" src="" alt="">
+          <div>
+            <div class="profile-page-name" id="profilePageName">—</div>
+            <div class="profile-page-sub">BGSI Market Helper</div>
+          </div>
+          <div class="profile-page-actions">
+            <button class="btn sec" onclick="openImport()">Import Orders</button>
+            <button class="btn" onclick="openAddPet()">+ Add Pet</button>
+            <button class="btn red" onclick="doLogout()">Logout</button>
+          </div>
+        </div>
+        <div class="port-stats-grid">
+          <div class="port-stat"><span>Pets Tracked</span><b id="portTotalPets">0</b></div>
+          <div class="port-stat"><span>Total Spent</span><b id="portTotalSpent">—</b></div>
+          <div class="port-stat"><span>Total Value</span><b id="portTotalVal" style="color:var(--win);">—</b></div>
+          <div class="port-stat"><span>Total P&amp;L</span><b id="portPnl" style="color:var(--muted);">—</b></div>
+        </div>
+        <!-- Level bar -->
+        <div id="portLevelBlock" style="border:1px solid var(--border);background:var(--surface);border-radius:8px;padding:12px 14px;margin-bottom:10px;display:none;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span style="font-size:11px;font-weight:800;color:#fff;" id="portLevelLabel">Level 1</span>
+            <span style="font-size:10px;color:var(--muted);" id="portLevelProgress">$0 / $50</span>
+          </div>
+          <div style="height:4px;background:var(--border);border-radius:4px;overflow:hidden;">
+            <div id="portLevelBar" style="height:100%;background:var(--win);border-radius:4px;width:0%;transition:width .4s;"></div>
+          </div>
+          <div style="font-size:9px;color:#2a2a2a;margin-top:5px;" id="portLevelNext"></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
+          <span style="font-size:9px;color:#333;text-transform:uppercase;letter-spacing:.6px;font-weight:700;">Sort</span>
+          <select id="portSort" class="ms" onchange="renderPortfolio()">
+            <option value="date_desc">Date: Newest</option>
+            <option value="date_asc">Date: Oldest</option>
+            <option value="val_desc">Value: High</option>
+            <option value="val_asc">Value: Low</option>
+            <option value="paid_desc">Paid: High</option>
+            <option value="paid_asc">Paid: Low</option>
+            <option value="pnl_desc">P&amp;L: Best</option>
+            <option value="pnl_asc">P&amp;L: Worst</option>
+          </select>
+        </div>
+        <div id="portList"><div class="note">No pets added yet. Click <b>+ Add Pet</b> to start tracking.</div></div>
+      </div>
+
+      <!-- INFO -->
+      <div class="pane" id="pane-info">
+        <div class="sec">About</div>
+        <div class="note">
+          BGSI market helper for bloxy.trade. Rate: $0.009&ndash;$0.010 per 1K value.<br><br>
+          <b>Pet Buying</b> — WIN / FAIR / LOSE check on any price.<br>
+          <b>Pet Selling</b> — suggested listing price.<br>
+          <b>Withdraw</b> — fee calculator.<br>
+          <b>Deals</b> — all pages aggregated. Filter by WIN, Near Win, etc.<br>
+          <b>Budget</b> — knapsack optimizer. Auto mode tries every threshold.<br>
+          <b>Profile</b> — click your avatar to view. Track pets, see P&amp;L and value changes.<br>
+          <b>Settings</b> — Discord webhook alerts, synced to your account.<br><br>
+          Data: api.bgsi.gg &bull; Images: cdn.bgsi.gg
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="pane" id="pane-settings">
+        <div class="sec">Discord Webhook</div>
+        <div class="iw"><label>Webhook URL</label><input id="whUrl" type="text" placeholder="https://discord.com/api/webhooks/..." oninput="saveSt()"></div>
+        <div class="iw"><label>Notify on</label>
+          <div class="wh-mode-grid">
+            <button class="fbtn active" id="wh-win" onclick="setWhMode('win')">WIN Only</button>
+            <button class="fbtn" id="wh-fair" onclick="setWhMode('fair')">WIN + FAIR</button>
+          </div>
+        </div>
+        <div class="g2">
+          <div class="iw"><label>Min Price ($)</label><input id="whMin" type="number" step="0.01" placeholder="any" oninput="saveSt()"></div>
+          <div class="iw"><label>Max Price ($)</label><input id="whMax" type="number" step="0.01" placeholder="any" oninput="saveSt()"></div>
+        </div>
+        <div class="iw"><label>Ping (optional)</label><input id="whPing" type="text" placeholder="@everyone" oninput="saveSt()"></div>
+        <div class="iw"><label>Pet Watchlist — empty = all pets</label>
+          <div style="position:relative;">
+            <input id="whSearch" type="text" placeholder="Search and add pets..." oninput="renderWLSearch()">
+            <div id="whDropdown" class="dropdown" style="display:none;"></div>
+          </div>
+        </div>
+        <div class="wlwrap" id="whWatchlist"></div>
+        <div style="display:flex;gap:6px;margin-top:4px;">
+          <button class="btn" onclick="testWh()" style="flex:1;">Send Test</button>
+          <button class="btn sec" onclick="clearSt()">Reset</button>
+        </div>
+        <div id="whStatus" style="font-size:11px;margin-top:7px;"></div>
+        <div class="note" style="margin-top:12px;font-size:11px;">Settings are saved to your account and sync across devices.</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import{getFirestore,doc,getDoc,setDoc,collection,addDoc}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import{getAuth,signInAnonymously}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+const cfg={apiKey:"AIzaSyA0i9ZO48mxV9e-RcpTSUSue5_RtY-Zki8",authDomain:"bgsihelp.firebaseapp.com",projectId:"bgsihelp",storageBucket:"bgsihelp.firebasestorage.app",messagingSenderId:"554608897166",appId:"1:554608897166:web:2d0bec29edfb135cecaddf"};
+const app=initializeApp(cfg);
+const db=getFirestore(app);
+const auth=getAuth(app);
+async function ea(){if(!auth.currentUser)await signInAnonymously(auth);return auth.currentUser;}
+window._fb={
+  async save(id,data){await ea();try{await setDoc(doc(db,'users',id),data,{merge:true});return true;}catch(e){console.error('FB save',e);return false;}},
+  async load(id){await ea();try{const s=await getDoc(doc(db,'users',id));return s.exists()?s.data():null;}catch(e){console.error('FB load',e);return null;}},
+  async logLogin(id,username,avatar){await ea();try{await setDoc(doc(db,'users',id),{username,avatar,discordId:id,lastSeen:new Date().toISOString()},{merge:true});await addDoc(collection(db,'logins'),{discordId:id,username,avatar,loginAt:new Date().toISOString()});}catch(e){console.error('FB logLogin',e);}}
+};
+window.dispatchEvent(new Event('firebaseReady'));
+</script>
+
+<script>
+var FALLBACK="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='64' height='64' rx='5' fill='%230c0c0c'/%3E%3Ctext x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-size='20' fill='%23222'%3E%3F%3C/text%3E%3C/svg%3E";
+var VCFG={Normal:{p:'Normal',l:'Normal'},Shiny:{p:'Shiny',l:'Shiny'},Mythic:{p:'Mythic',l:'Mythic'},ShinyMythic:{p:'ShinyMythic',l:'Shiny Mythic'},XL:{p:'XL',l:'Normal XL'},ShinyXL:{p:'ShinyXL',l:'Shiny XL'}};
+var API_BASE='https://api.bgsi.gg/api/items',CDN='https://cdn.bgsi.gg',PAGE_LIMIT=100;
+var rawData={},loadedV=new Set(),loadingV=new Set();
+var activeFilter='Normal',searchQ='',curPage=0,selPet=null;
+var DEALS_GAME="Bubble Gum Simulator Infinity";
+var dealsSocket=null,dealsConnecting=false,dealsLoadingAll=false;
+var dealsAllListings=[],dealsPageKeys=new Set(),dealsTotalPages=1;
+var dealsPag={totalPages:1},dealsPage=1,dealsLimit=50;
+var whSettings={url:'',mode:'win',minPrice:null,maxPrice:null,ping:'',watchlist:[]};
+var notifiedKeys=new Set(),seenKeys=new Set(),whQueue=[],whTimer=null,WH_MS=2500,WH_BATCH=10;
+var currentUser=null,portfolio=[],fbReady=false,portSelectedPet=null;
+var fbSaveTimer=null;
+
+var CLIENT_ID='1484475596762513428';
+var REDIRECT_URI='https://bgsitousd.netlify.app/callback';
+
+// ── AUTH ──
+function loginWithDiscord(){var p=new URLSearchParams({client_id:CLIENT_ID,redirect_uri:REDIRECT_URI,response_type:'code',scope:'identify guilds guilds.members.read'});window.location.href='https://discord.com/api/oauth2/authorize?'+p.toString();}
+
+function doLogout(){
+  if(!confirm('Log out?'))return;
+  localStorage.removeItem('bgsi_user');
+  currentUser=null;
+  document.getElementById('avatarPill').style.display='none';
+  document.getElementById('loginGate').classList.remove('hidden');
+  setTab('buy');
+}
+
+async function initUser(){
+  var stored=localStorage.getItem('bgsi_user');
+  if(!stored){document.getElementById('loginGate').classList.remove('hidden');return;}
+  try{
+    currentUser=JSON.parse(stored);
+    // No token = manually set entry, kick immediately
+    if(!currentUser.accessToken||!currentUser.id){
+      localStorage.removeItem('bgsi_user');
+      document.getElementById('loginGate').classList.remove('hidden');
+      return;
+    }
+    // Show a verifying state — keep login gate visible until confirmed
+    var loginGate=document.getElementById('loginGate');
+    var loginBox=loginGate.querySelector('.login-box');
+    if(loginBox)loginBox.innerHTML='<div class="login-logo">BGSI Market Helper</div><div style="font-size:13px;color:#555;margin-top:20px;">Verifying...</div>';
+    loginGate.classList.remove('hidden');
+    // Verify token against Discord — hard fail if unreachable or invalid
+    var valid=false;
+    try{
+      var vr=await fetch('/.netlify/functions/verify-token',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:currentUser.accessToken,expectedId:currentUser.id})});
+      var vd=await vr.json();
+      valid=vd.valid===true;
+    }catch(e){
+      // Can't reach verify function — fail closed, force re-login
+      valid=false;
+    }
+    if(!valid){
+      localStorage.removeItem('bgsi_user');
+      localStorage.removeItem('bgsi_port_'+currentUser.id);
+      // Restore the login gate with proper content
+      if(loginBox)loginBox.innerHTML='<div class="login-logo">BGSI Market Helper</div><div class="login-title">Members Only</div><div class="login-sub">Your session expired or is invalid. Please log in again.</div><button class="discord-btn" onclick="loginWithDiscord()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>Login with Discord</button>';
+      currentUser=null;
+      return;
+    }
+    loginGate.classList.add('hidden');
+    document.getElementById('userAvatar').src=currentUser.avatar||'';
+    document.getElementById('userName').textContent=currentUser.username||'';
+    document.getElementById('avatarPill').style.display='flex';
+    document.getElementById('profilePageAv').src=currentUser.avatar||'';
+    document.getElementById('profilePageName').textContent=currentUser.username||'';
+    try{var cached=localStorage.getItem('bgsi_port_'+currentUser.id);if(cached){portfolio=JSON.parse(cached);}}catch(e){}
+    if(fbReady)await loadFromFirebase();
+    else window.addEventListener('firebaseReady',async function(){fbReady=true;await loadFromFirebase();},{once:true});
+  }catch(e){
+    localStorage.removeItem('bgsi_user');
+    document.getElementById('loginGate').classList.remove('hidden');
+  }
+}
+
+async function loadFromFirebase(){
+  if(!currentUser||!window._fb)return;
+  window._fb.logLogin(currentUser.id,currentUser.username,currentUser.avatar||'');
+  var data=await window._fb.load(currentUser.id);
+  if(!data)return;
+  if(data.settings){
+    // Strip webhook URL from what gets loaded into the UI — keep it server-side only
+    var safeSettings=Object.assign({},data.settings,{url:'',webhookUrl:''});
+    applySettings(safeSettings);
+    // But keep the real URL in memory for sending webhooks if user entered it this session
+    whSettings.url=data.settings.url||data.webhookUrl||'';
+  }
+  if(Array.isArray(data.portfolio)&&data.portfolio.length){
+    portfolio=data.portfolio;
+    try{localStorage.setItem('bgsi_port_'+currentUser.id,JSON.stringify(portfolio));}catch(e){}
+    renderPortfolio();
+  }
+  if(!data.username||data.username!==currentUser.username||!data.avatar){
+    window._fb.save(currentUser.id,{username:currentUser.username,avatar:currentUser.avatar,discordId:currentUser.id});
+  }
+}
+
+// Debounced save — batches rapid changes into one write
+function scheduleFbSave(){
+  if(fbSaveTimer)clearTimeout(fbSaveTimer);
+  fbSaveTimer=setTimeout(flushFbSave,800);
+}
+async function flushFbSave(){
+  if(!currentUser||!window._fb)return;
+  // Also save to localStorage as instant backup so pets survive refresh
+  try{localStorage.setItem('bgsi_port_'+currentUser.id,JSON.stringify(portfolio));}catch(e){}
+  var payload={
+    username:currentUser.username,
+    avatar:currentUser.avatar,
+    discordId:currentUser.id,
+    settings:whSettings,
+    portfolio:portfolio,
+    webhookUrl:whSettings.url||null,
+    lastSeen:new Date().toISOString()
+  };
+  await window._fb.save(currentUser.id,payload);
+}
+
+// ── UTILS ──
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');}
+function imgUrl(u){if(!u)return'';var s=String(u).trim();if(!s)return'';if(s.startsWith('/items/')||s.startsWith('/pets/'))return CDN+s;if(s.startsWith('http'))return s;var m=s.match(/^rbxassetid:\/\/(\d+)/i);if(m)return'https://www.roblox.com/asset/?id='+m[1];if(/^\d+$/.test(s))return'https://www.roblox.com/asset/?id='+s;if(s.startsWith('//'))return'https:'+s;return s;}
+function buildImg(raw){if(raw&&raw.slug)return CDN+'/items/'+raw.slug+'.png';return imgUrl((raw&&(raw.image||raw.img))||'');}
+function parseVal(s){s=String(s||'').toLowerCase().trim().replace(/,/g,'');if(!s)return NaN;var m=1;if(s.endsWith('k'))m=1e3;else if(s.endsWith('m'))m=1e6;else if(s.endsWith('b'))m=1e9;else if(s.endsWith('t'))m=1e12;var n=parseFloat(s);return isNaN(n)?NaN:n*m;}
+function fmtVal(n){if(n==null||isNaN(n))return'';if(n>=1e12)return(n/1e12).toFixed(2).replace(/\.?0+$/,'')+'T';if(n>=1e9)return(n/1e9).toFixed(2).replace(/\.?0+$/,'')+'B';if(n>=1e6)return(n/1e6).toFixed(2).replace(/\.?0+$/,'')+'M';if(n>=1e3)return(n/1e3).toFixed(2).replace(/\.?0+$/,'')+'K';return String(n);}
+function fmtUsd(x){if(x==null||isNaN(x))return'\u2014';return'$'+Number(x).toFixed(2);}
+function normTrend(v){if(!v)return'Stable';var s=String(v).toLowerCase();if(s.includes('rise')||s.includes('up')||s.includes('increas'))return'Rising';if(s.includes('drop')||s.includes('down')||s.includes('decreas'))return'Dropping';return'Stable';}
+function normDemand(v){if(!v)return'';var s=String(v).trim(),l=s.toLowerCase();if(l==='insane')return'Insane';if(l.includes('very high'))return'Very High';if(l==='high'||(l.includes('high')&&!l.includes('very')))return'High';if(l.includes('medium')||l.includes('mid'))return'Medium';if(l==='low'||(l.includes('low')&&!l.includes('very')))return'Low';if(l.includes('very low'))return'Very Low';return'';}
+function dClass(d){var s=String(d||'').toLowerCase();if(s==='insane')return'd-insane';if(s==='very high')return'd-veryhigh';if(s==='high')return'd-high';if(s==='medium')return'd-medium';if(s==='low')return'd-low';if(s==='very low')return'd-verylow';return'';}
+function dMult(d){var m={'Very Low':.85,'Low':.93,'Medium':1,'High':1.12,'Very High':1.22,'Insane':1.4};return m[d]||1;}
+function tAdj(t){return t==='Rising'?.0005:(t==='Dropping'?-.0005:0);}
+function fairRange(valStr,demand,trend){var v=parseVal(valStr);if(!v||isNaN(v))return null;var dm=dMult(demand||''),ta=tAdj(trend||'Stable');return{min:(v/1000)*(0.009+ta)*dm,max:(v/1000)*(0.010+ta)*dm,vn:v};}
+function normItem(raw,vk){if(!raw)return null;var name=String(raw.name||'').trim();if(!name)return null;var vn=typeof raw.value==='number'?raw.value:typeof raw.numericValue==='number'?raw.numericValue:parseVal(String(raw.value||raw.val||''));if(!vn||isNaN(vn)||vn<100)return null;return{name,slug:raw.slug||'',vs:fmtVal(vn),vn,img:buildImg(raw),demand:normDemand(raw.demand||''),trend:normTrend(raw.trend||''),vk};}
+function showBar(vis,lbl,pct){var w=document.getElementById('loadBarWrap'),f=document.getElementById('loadBarFill'),l=document.getElementById('loadLbl');if(!w)return;w.style.display=vis?'block':'none';if(l)l.textContent=lbl||'';if(f)f.style.width=(pct!=null?pct:15)+'%';}
+
+async function fetchPage(vk,page){var r=await fetch(API_BASE+'?search=&sort=value-desc&variant='+VCFG[vk].p+'&category=all&page='+page+'&limit='+PAGE_LIMIT+'&oc=false');if(!r.ok)throw new Error('HTTP '+r.status);var d=await r.json();var list=d.pets||d.items||d.data||(Array.isArray(d)?d:[]);var pages=(d.pagination&&(d.pagination.pages||d.pagination.totalPages))||1;var items=[];if(Array.isArray(list))list.forEach(function(raw){var n=normItem(raw,vk);if(n)items.push(n);});return{items,pages};}
+async function loadVariant(vk){if(loadedV.has(vk)||loadingV.has(vk))return;loadingV.add(vk);var items=[];showBar(true,'Loading '+VCFG[vk].l+'...',10);try{var first=await fetchPage(vk,1);items=items.concat(first.items);var maxP=Math.min(first.pages,80);if(maxP>1){var nums=[];for(var i=2;i<=maxP;i++)nums.push(i);for(var i=0;i<nums.length;i+=6){var chunk=nums.slice(i,i+6);showBar(true,'Loading '+VCFG[vk].l+'... '+Math.min(Math.round(((i+6)/nums.length)*100),100)+'%',Math.min(Math.round(((i+6)/nums.length)*100),100));var res=await Promise.all(chunk.map(function(p){return fetchPage(vk,p).catch(function(){return{items:[],pages:1};});}));res.forEach(function(r){items=items.concat(r.items);});}}rawData[vk]=items;loadedV.add(vk);}catch(e){rawData[vk]=[];loadedV.add(vk);}loadingV.delete(vk);showBar(false);render();
+  // Re-render portfolio now that we have fresh value data
+  if(portfolio.length)renderPortfolio();
+}
+async function preloadAll(){await loadVariant(activeFilter);var keys=Object.keys(VCFG);for(var i=0;i<keys.length;i++)if(keys[i]!==activeFilter)loadVariant(keys[i]);}
+
+function varClass(vk){return vk==='ShinyMythic'?'vc-sm':vk==='Shiny'||vk==='ShinyXL'?'vc-shiny':vk==='Mythic'?'vc-mythic':'vc-normal';}
+function varColor(vk){return vk==='ShinyMythic'?'#20b19a':vk==='Shiny'||vk==='ShinyXL'?'#facc15':vk==='Mythic'?'#c084fc':'#e0e0e0';}
+function vcSpan(vk,label){return'<span class="'+varClass(vk)+'" style="font-size:8.5px;text-transform:uppercase;letter-spacing:.4px;">'+esc(label)+'</span>';}
+
+function setFilter(f){activeFilter=f;document.querySelectorAll('.fbtn[id^="f-"]').forEach(function(b){b.classList.remove('active');});var btn=document.getElementById('f-'+f);if(btn)btn.classList.add('active');curPage=0;if(!loadedV.has(f)){document.getElementById('petList').innerHTML='<div style="padding:18px;color:#2a2a2a;font-size:11px;text-align:center;">Loading...</div>';loadVariant(f);}else render();}
+function handleSearch(){searchQ=(document.getElementById('petSearch').value||'').toLowerCase();curPage=0;render();}
+function render(){var list=document.getElementById('petList'),items=rawData[activeFilter]||[];if(!items.length){list.innerHTML=loadingV.has(activeFilter)?'<div style="padding:18px;color:#2a2a2a;font-size:11px;text-align:center;">Loading...</div>':'<div style="padding:18px;color:#333;font-size:11px;text-align:center;">No data.</div>';return;}var filtered=items.filter(function(it){return it.name.toLowerCase().includes(searchQ);});filtered.sort(function(a,b){return b.vn-a.vn;});var start=curPage*20,page=filtered.slice(start,start+20);list.innerHTML='';page.forEach(function(item){var div=document.createElement('div');div.className='pet-item';var tc=item.trend==='Rising'?'good':(item.trend==='Dropping'?'bad':'');var vcl=varClass(activeFilter);div.innerHTML='<img class="pet-img" src="'+esc(item.img)+'" onerror="this.onerror=null;this.src=FALLBACK" loading="lazy"><div class="pet-info"><span class="pet-name">'+esc(item.name)+'</span><span class="'+vcl+'" style="display:inline-block;font-size:9px;text-transform:uppercase;letter-spacing:.3px;margin-top:1px;">'+esc(VCFG[activeFilter].l)+'</span><div class="pet-meta"><span class="chip '+dClass(item.demand)+'">'+esc(item.demand||'?')+'</span>'+(item.trend!=='Stable'?'<span class="chip '+tc+'">'+esc(item.trend)+'</span>':'')+'</div></div><div class="pet-val">'+esc(item.vs)+'</div>';div.onclick=function(){selectPet(item);};list.appendChild(div);});document.getElementById('pageLabel').textContent=(curPage+1)+'/'+Math.max(1,Math.ceil(filtered.length/20));}
+function changePage(dir){var items=rawData[activeFilter]||[];var filtered=items.filter(function(it){return it.name.toLowerCase().includes(searchQ);});var max=Math.max(0,Math.ceil(filtered.length/20)-1);curPage=Math.max(0,Math.min(max,curPage+dir));render();}
+function selectPet(item){
+  selPet=item;
+  sf('valInput',item.vs);sf('demandFull',item.demand);sf('trend',item.trend||'Stable');sp('prevBuy','prevBuyImg',item.img);
+  sf('sellValInput',item.vs);sf('sellDemand',item.demand);sf('sellTrend',item.trend||'Stable');sp('prevSell','prevSellImg',item.img);
+  // Apply variant color to the variant label shown in buy/sell
+  var vc=varClass(item.vk);
+  var vl=VCFG[item.vk]?VCFG[item.vk].l:item.vk;
+  ['prevBuy','prevSell'].forEach(function(pid){
+    var c=document.getElementById(pid);
+    if(c){
+      var existing=c.parentNode.querySelector('.sel-variant-label');
+      if(existing)existing.remove();
+      var span=document.createElement('div');
+      span.className='sel-variant-label '+vc;
+      span.style.cssText='font-size:10px;font-weight:800;text-align:center;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;';
+      span.textContent=vl;
+      c.parentNode.insertBefore(span,c);
+    }
+  });
+  calculate();calcSell();
+}
+function sf(id,val){var el=document.getElementById(id);if(el)el.value=val||'';}
+function sp(cid,iid,src){var c=document.getElementById(cid),img=document.getElementById(iid);if(!c||!img)return;img.src=src||'';img.onerror=function(){img.src=FALLBACK;};c.classList.add('active');}
+function syncPet(){if(selPet)selectPet(selPet);}
+
+function calculate(){var vs=document.getElementById('valInput').value,price=parseFloat(document.getElementById('priceInput').value);var demand=document.getElementById('demandFull').value||'',trend=document.getElementById('trend').value||'Stable';var fr=fairRange(vs,demand,trend),vb=document.getElementById('buyVerdict'),title=document.getElementById('resTitle');if(!fr){vb.className='verdict-block';title.textContent='—';return;}document.getElementById('fairRange').textContent=fmtUsd(fr.min)+' \u2013 '+fmtUsd(fr.max);if(isNaN(price)){document.getElementById('paidRate').textContent='—';vb.className='verdict-block';title.textContent='—';return;}var rate=price/(fr.vn/1000);document.getElementById('paidRate').textContent='$'+rate.toFixed(4);if(price<fr.min){vb.className='verdict-block win';title.textContent='WIN';}else if(price<=fr.max){vb.className='verdict-block fair';title.textContent='FAIR';}else{vb.className='verdict-block lose';title.textContent='LOSE';}}
+function calcSell(){var vs=document.getElementById('sellValInput').value,demand=document.getElementById('sellDemand').value||'',trend=document.getElementById('sellTrend').value||'Stable';var fr=fairRange(vs,demand,trend);if(!fr){document.getElementById('sellRange').textContent='—';document.getElementById('sellSuggest').textContent='—';return;}document.getElementById('sellRange').textContent=fmtUsd(fr.min)+' \u2013 '+fmtUsd(fr.max);document.getElementById('sellSuggest').textContent=fmtUsd(Math.min(fr.max,Math.max(fr.min,fr.max-0.002)));}
+function calcWithdraw(){var amt=parseFloat(document.getElementById('wdAmount').value),flat=parseFloat(document.getElementById('wdFlat').value)||0,pct=parseFloat(document.getElementById('wdPct').value)||0;if(isNaN(amt)){document.getElementById('wdFees').textContent='$0.00';document.getElementById('wdReceive').textContent='$0.00';document.getElementById('wdWarn').style.display='none';return;}var fee=flat+(amt*(pct/100));document.getElementById('wdFees').textContent=fmtUsd(fee);document.getElementById('wdReceive').textContent=fmtUsd(Math.max(0,amt-fee));document.getElementById('wdWarn').style.display=(amt>0&&amt<10)?'block':'none';}
+
+function setTab(tab){
+  document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
+  var tb=document.getElementById('tab-'+tab);if(tb)tb.classList.add('active');
+  document.querySelectorAll('.pane').forEach(function(p){p.classList.remove('active');});
+  var pane=document.getElementById('pane-'+tab);if(pane)pane.classList.add('active');
+  var showSidebar=tab==='buy'||tab==='sell';
+  document.getElementById('sidebar').classList.toggle('hidden',!showSidebar);
+  document.getElementById('mainContainer').className='main-content';
+  if(tab==='deals'){if(!dealsSocket||dealsSocket.readyState===WebSocket.CLOSED||dealsSocket.readyState===WebSocket.CLOSING){startDealsAllPages();}else if(dealsSocket.readyState===WebSocket.OPEN){if(dealsAllListings.length)renderDeals();else renderDeals(true);}else renderDeals(true);}
+  if(tab==='settings')renderWL();
+  if(tab==='profile')renderPortfolio();
+  syncPet();
+}
+
+// ── DEALS ──
+function setDStatus(t){var e=document.getElementById('dealsStatus');if(e)e.textContent=t;}
+function closeDealsWS(){try{if(dealsSocket){dealsSocket.onclose=null;dealsSocket.onerror=null;dealsSocket.onmessage=null;dealsSocket.close();}}catch(e){}dealsSocket=null;dealsConnecting=false;dealsLoadingAll=false;}
+function refreshDeals(){dealsAllListings=[];dealsPageKeys=new Set();dealsLoadingAll=false;renderDeals(true);closeDealsWS();setTimeout(startDealsAllPages,150);}
+function changeDealsPage(dir){var tp=dealsPag.totalPages||1;dealsPage=Math.max(1,Math.min(tp,dealsPage+dir));renderDeals();}
+function onDealsFilterChange(){
+  var mode=document.getElementById('dealsFilter').value;
+  var wrap=document.getElementById('nearWinWrap');
+  if(wrap)wrap.style.display=(mode==='nearwin')?'flex':'none';
+  dealsPage=1;
+  renderDeals();
+}
+function startDealsAllPages(){var pane=document.getElementById('pane-deals');if(!pane||!pane.classList.contains('active'))return;if(dealsConnecting||dealsLoadingAll)return;if(dealsSocket&&(dealsSocket.readyState===WebSocket.CONNECTING||dealsSocket.readyState===WebSocket.OPEN))return;dealsConnecting=true;dealsLoadingAll=true;dealsAllListings=[];dealsPageKeys=new Set();dealsTotalPages=1;var currentPage=1;setDStatus('Connecting...');try{var ws=new WebSocket('wss://marketplace-ws.bgsiscan.workers.dev/ws/'+encodeURIComponent(DEALS_GAME));dealsSocket=ws;var ct=setTimeout(function(){if(ws.readyState!==WebSocket.OPEN){ws.onclose=null;ws.onerror=null;ws.onmessage=null;try{ws.close();}catch(e){}if(dealsSocket===ws)dealsSocket=null;dealsConnecting=false;dealsLoadingAll=false;setDStatus('Timed out. Click Refresh.');}},12000);ws.onopen=function(){clearTimeout(ct);dealsConnecting=false;setDStatus('Loading...');ws.send(JSON.stringify({type:'params',params:{page:currentPage,limit:dealsLimit,sort:'price_asc',search:''}}));};ws.onclose=function(){clearTimeout(ct);dealsConnecting=false;dealsLoadingAll=false;if(dealsSocket===ws){dealsSocket=null;if(dealsAllListings.length){var m=dealsAllListings.filter(function(x){return x.vs&&x.vs!=='N/A';}).length;setDStatus(dealsAllListings.length+' listings \u2022 '+m+' valued');}else setDStatus('Disconnected. Click Refresh.');}};ws.onerror=function(){clearTimeout(ct);dealsConnecting=false;dealsLoadingAll=false;setDStatus('Error. Click Refresh.');};ws.onmessage=function(evt){if(dealsSocket!==ws)return;var msg;try{msg=JSON.parse(evt.data);}catch(e){return;}if(!msg)return;if(msg.pagination){dealsTotalPages=msg.pagination.pages||msg.pagination.totalPages||1;dealsPag.totalPages=dealsTotalPages;}var stacks=msg.stacks||msg.listings||msg.items||[];if(Array.isArray(stacks)){var normed=[];stacks.forEach(function(s){var n=normListing(s);if(n)normed.push(n);});var isFirst=seenKeys.size===0&&dealsAllListings.length===0;if(isFirst){normed.forEach(function(l){if(l.price!=null)seenKeys.add(l.listingName+'|'+l.price);});}else{normed.forEach(function(l){try{checkAndNotify(l);}catch(e){}});normed.forEach(function(l){if(l.price!=null)seenKeys.add(l.listingName+'|'+l.price);});}normed.forEach(function(l){var k=l.listingName+'|'+(l.price!=null?l.price.toFixed(4):'x');if(!dealsPageKeys.has(k)){dealsPageKeys.add(k);dealsAllListings.push(l);}});}setDStatus('Page '+currentPage+'/'+dealsTotalPages+' \u2022 '+dealsAllListings.length+' collected');renderDeals();if(currentPage<dealsTotalPages&&dealsLoadingAll){currentPage++;ws.send(JSON.stringify({type:'params',params:{page:currentPage,limit:dealsLimit,sort:'price_asc',search:''}}));}else{dealsLoadingAll=false;var m2=dealsAllListings.filter(function(x){return x.vs&&x.vs!=='N/A';}).length;setDStatus(dealsAllListings.length+' listings \u2022 '+m2+' valued');try{if(ws.readyState===WebSocket.OPEN)ws.close();}catch(e){}}};}catch(e){dealsConnecting=false;dealsLoadingAll=false;setDStatus('WS blocked?');}}
+function cleanName(s){return String(s||'').replace(/\s+/g,' ').replace(/[\u200B-\u200D\uFEFF]/g,'').trim();}
+function findByName(listingName){var full=cleanName(listingName).toLowerCase(),ns=full.replace(/\s+/g,'');var keys=Object.keys(VCFG);for(var i=0;i<keys.length;i++){var k=keys[i],list=rawData[k]||[],found=null;for(var j=0;j<list.length;j++){if(list[j].name.toLowerCase()===full){found=list[j];break;}}if(!found)for(var j=0;j<list.length;j++){if(list[j].name.toLowerCase().replace(/\s+/g,'')===ns){found=list[j];break;}}if(found)return{vs:found.vs,vn:found.vn,img:found.img,demand:found.demand,trend:found.trend,vl:VCFG[k].l,vk:k};}return null;}
+function extractPrice(raw){var cands=[raw.price,raw.usd,raw.listedPrice,raw.listPrice,raw.amount,raw.cost,raw.minPrice,raw.min_price,raw.lowestPrice,raw.lowest_price,raw.bestPrice,raw.best_price,raw.minUsd,raw.min_usd,raw.priceUsd,raw.price_usd];if(raw.stats)cands.push(raw.stats.minPrice,raw.stats.lowestPrice);if(raw.min)cands.push(raw.min.usd,raw.min.price);if(Array.isArray(raw.listings)&&raw.listings.length){var f=raw.listings[0];cands.unshift(f.price,f.usd,f.amount,f.listedPrice);}for(var i=0;i<cands.length;i++){var c=cands[i];if(c==null)continue;if(typeof c==='object')c=(c.usd||c.amount||c.value||c.price||null);if(typeof c==='string'){var n=parseFloat(c.replace(/[^0-9.]/g,''));if(!isNaN(n))return n;}else if(typeof c==='number'&&!isNaN(c))return c;}return null;}
+function normListing(raw){var name=raw.name||raw.stackName||raw.itemName||raw.petName||raw.title||'';if(!name)return null;var price=extractPrice(raw),vi=findByName(name);if(!vi||!vi.vn||vi.vn<100)return null;var img=vi.img||imgUrl(raw.image||raw.img||raw.icon||raw.thumbnail||'');var vs=vi.vs,vn=vi.vn,vl=vi.vl||'Normal',demand=vi.demand||'',trend=vi.trend||'Stable';var fr=fairRange(vs,demand,trend);var verdict='NA',savings=null;if(price!=null&&fr){if(price<fr.min)verdict='WIN';else if(price<=fr.max)verdict='FAIR';else verdict='LOSE';savings=fr.max-price;}
+  return{listingName:cleanName(name),variantName:vl,vk:vi.vk||'Normal',price,img,demand,trend,vs,vn,fair:fr,verdict,savings};
+}
+function updateDealsFooter(n,tp){var pl=document.getElementById('dealsPageLabel'),cl=document.getElementById('dealsCountLabel');if(pl)pl.textContent=dealsPage+'/'+(tp||1);if(cl)cl.textContent=n+' listings';}
+function renderDeals(loading){var grid=document.getElementById('dealsGrid');if(!grid)return;if(loading){grid.innerHTML='<div class="note" style="grid-column:1/-1;">Loading all pages...</div>';updateDealsFooter(0,1);return;}if(!dealsAllListings.length){grid.innerHTML='<div class="note" style="grid-column:1/-1;">No listings yet.</div>';updateDealsFooter(0,1);return;}
+  var fm=(document.getElementById('dealsFilter')&&document.getElementById('dealsFilter').value)||'all';
+  var nt=parseFloat((document.getElementById('nearWinThresh')&&document.getElementById('nearWinThresh').value)||'1.00');
+  var sm=(document.getElementById('dealsSort')&&document.getElementById('dealsSort').value)||'savings';
+  var list=dealsAllListings.slice().filter(function(item){
+    if(fm==='win')return item.verdict==='WIN';
+    if(fm==='fair')return item.verdict==='WIN'||item.verdict==='FAIR';
+    if(fm==='nearwin'){if(item.verdict!=='LOSE')return false;if(!item.fair||item.price==null)return false;var over=item.price-item.fair.max;return over>0&&over<=nt;}
+    return true;
+  });
+  var vo={WIN:0,FAIR:1,LOSE:2,NA:3};
+  if(sm==='value_desc'){
+    list.sort(function(a,b){return(b.vn||0)-(a.vn||0);});
+  } else if(sm==='price_asc'){
+    list.sort(function(a,b){return(a.price||999999)-(b.price||999999);});
+  } else if(sm==='price_desc'){
+    list.sort(function(a,b){return(b.price||0)-(a.price||0);});
+  } else {
+    // Best Savings mode
+    if(fm==='nearwin'){
+      // Near Win: sort by smallest overage above fair max
+      list.sort(function(a,b){var ao=a.fair?(a.price-a.fair.max):999,bo=b.fair?(b.price-b.fair.max):999;return ao-bo;});
+    } else {
+      // WIN first, FAIR second, then by biggest dollar savings
+      list.sort(function(a,b){
+        var av=vo[a.verdict]!=null?vo[a.verdict]:3,bv=vo[b.verdict]!=null?vo[b.verdict]:3;
+        if(av!==bv)return av-bv;
+        var sa=a.savings!=null?a.savings:-999999,sb=b.savings!=null?b.savings:-999999;
+        return sb-sa;
+      });
+    }
+  }
+  var PER=20,tot=list.length,tp2=Math.max(1,Math.ceil(tot/PER));if(dealsPage>tp2)dealsPage=1;dealsPag.totalPages=tp2;updateDealsFooter(tot,tp2);
+  var plist=list.slice((dealsPage-1)*PER,dealsPage*PER);
+  if(!list.length){grid.innerHTML='<div class="note" style="grid-column:1/-1;">No listings match this filter.</div>';return;}
+  var html='';
+  plist.forEach(function(item){
+    var img=item.img||FALLBACK,fairTxt=item.fair?(fmtUsd(item.fair.min)+' \u2013 '+fmtUsd(item.fair.max)):'—',vTxt=item.vs||'—';
+    var bc='na',bt='?',cc='deal-card';
+    if(!item.vs||item.vs==='N/A'){bc='na';bt='?';}
+    else if(item.verdict==='WIN'){bc='win';bt='WIN';cc='deal-card is-win';}
+    else if(item.verdict==='FAIR'){bc='fair';bt='FAIR';}
+    else if(item.verdict==='LOSE'){if(item.fair&&item.price!=null){var over=item.price-item.fair.max;if(over>0&&over<=3){bc='nearwin';bt='~$'+over.toFixed(2)+' over';cc='deal-card is-nearwin';}else{bc='lose';bt='LOSE';}}else{bc='lose';bt='LOSE';}}
+    var savH='';if(item.savings!=null&&!isNaN(item.savings)&&item.fair){var sa=item.savings;savH='<div class="deal-sav '+(sa>=0?'sw':'sl')+'">'+(sa>=0?'+':'')+esc(fmtUsd(sa))+'</div>';}
+    var tc=item.trend==='Rising'?'good':(item.trend==='Dropping'?'bad':'');
+    var cd=esc(item.listingName+' | '+fmtUsd(item.price)+' | Value: '+vTxt+' | Fair: '+fairTxt+' | '+bt);
+    // Variant color — use gradient class
+    var itemVcl=varClass(item.vk||'Normal');
+    html+='<div class="'+cc+'"><img class="deal-img" src="'+esc(img)+'" loading="lazy" onerror="this.onerror=null;this.src=FALLBACK">'
+      +'<div class="deal-mid">'
+        +'<div class="deal-name" title="'+esc(item.listingName)+'">'+esc(item.listingName)+'</div>'
+        +'<div class="deal-variant"><span class="'+itemVcl+'">'+esc(item.variantName)+'</span><span style="color:#2e2e2e;"> \u2022 '+esc(vTxt)+'</span></div>'
+        +'<div class="deal-meta"><span class="chip '+dClass(item.demand)+'">'+esc(item.demand||'?')+'</span>'+(item.trend!=='Stable'?'<span class="chip '+tc+'">'+esc(item.trend)+'</span>':'')+'<span class="badge '+bc+'">'+esc(bt)+'</span><button class="copy-btn" data-copy="'+cd+'">Copy</button></div>'
+      +'</div>'
+      +'<div class="deal-right"><div class="deal-price">'+esc(fmtUsd(item.price))+'</div><div class="deal-fair">Fair: '+esc(fairTxt)+'</div>'+savH+'</div>'
+    +'</div>';
+  });
+  grid.innerHTML=html;
+  grid.querySelectorAll('.copy-btn').forEach(function(btn){btn.addEventListener('click',function(){var tmp=document.createElement('div');tmp.innerHTML=this.getAttribute('data-copy')||'';navigator.clipboard.writeText(tmp.textContent||'').then(function(){btn.textContent='Copied';setTimeout(function(){btn.textContent='Copy';},1400);}).catch(function(){});});});
+}
+
+// ── BUDGET ──
+var budgetWS=null,budgetListings=[],budgetScanning=false,budgetPage=1,budgetTotalPages=1;
+var autoScanThresholds=[0,50000,75000,100000,250000,500000,1000000,5000000,10000000];
+var autoScanIdx=0,autoScanResults=[],autoScanning=false;
+var MAX_SAME=1,DP_CENT_CAP=50000;
+function getBudgetMinVal(){var sel=document.getElementById('budgetMinVal');if(!sel)return 100000;if(sel.value==='custom'){var cv=parseFloat(document.getElementById('budgetMinValCustom').value);return isNaN(cv)?0:cv;}return parseFloat(sel.value)||0;}
+function onBudgetMinValChange(){var sel=document.getElementById('budgetMinVal'),cust=document.getElementById('budgetMinValCustom');if(cust)cust.style.display=(sel&&sel.value==='custom')?'inline-block':'none';}
+function stopBudgetScan(){budgetScanning=false;autoScanning=false;if(budgetWS){try{budgetWS.close();}catch(e){}budgetWS=null;}setBSt('');setSF(0);}
+function setBSt(msg){var el=document.getElementById('budgetStatus');if(el)el.textContent=msg;}
+function setSF(pct){var el=document.getElementById('budgetScanFill');if(el)el.style.width=pct+'%';}
+function startBudgetScan(){var budget=parseFloat(document.getElementById('budgetAmt').value);if(!budget||isNaN(budget)||budget<=0){setBSt('Enter a budget first.');return;}autoScanning=false;runBudgetScan(budget,getBudgetMinVal(),function(r){renderBudgetResult(r,budget,false);});}
+function startAutoScan(){var budget=parseFloat(document.getElementById('budgetAmt').value);if(!budget||isNaN(budget)||budget<=0){setBSt('Enter a budget first.');return;}stopBudgetScan();autoScanning=true;autoScanResults=[];autoScanIdx=0;document.getElementById('budgetResults').innerHTML='<div class="note">Auto scanning...</div>';document.getElementById('budgetBestVal').textContent='—';document.getElementById('budgetBestRate').textContent='—';runNextAutoScan(budget);}
+function runNextAutoScan(budget){if(!autoScanning||autoScanIdx>=autoScanThresholds.length){finishAutoScan(budget);return;}var thresh=autoScanThresholds[autoScanIdx];setBSt('Auto: '+(thresh===0?'Any':fmtVal(thresh)+'+')+'... ('+(autoScanIdx+1)+'/'+autoScanThresholds.length+')');setSF(Math.round((autoScanIdx/autoScanThresholds.length)*95));runBudgetScan(budget,thresh,function(r){autoScanResults.push({thresh,r});autoScanIdx++;setTimeout(function(){runNextAutoScan(budget);},40);});}
+function finishAutoScan(budget){autoScanning=false;setSF(100);if(!autoScanResults.length){setBSt('No results.');return;}autoScanResults.sort(function(a,b){return b.r.totalVal-a.r.totalVal;});var best=autoScanResults[0];setBSt('Auto done \u2022 best: '+(best.thresh===0?'Any':fmtVal(best.thresh)+'+'));var sel=document.getElementById('budgetMinVal');if(sel){for(var i=0;i<sel.options.length;i++)if(parseFloat(sel.options[i].value)===best.thresh){sel.selectedIndex=i;break;}}renderBudgetResult(best.r,budget,true);}
+function runBudgetScan(budget,minVal,callback){if(!autoScanning){stopBudgetScan();setSF(2);setBSt('Connecting...');}budgetListings=[];budgetPage=1;budgetTotalPages=1;budgetScanning=true;var url='wss://marketplace-ws.bgsiscan.workers.dev/ws/'+encodeURIComponent(DEALS_GAME)+'?page=1&limit=50&sort=price_asc';try{var ws=new WebSocket(url);budgetWS=ws;ws.onerror=function(){budgetScanning=false;setSF(0);if(autoScanning)callback({chosen:[],totalVal:0,totalCost:0,items:[]});else setBSt('WS error.');};ws.onclose=function(){};ws.onopen=function(){ws.send(JSON.stringify({type:'params',params:{page:1,limit:50,sort:'price_asc',search:''}}));};ws.onmessage=function(evt){if(!budgetScanning)return;var msg;try{msg=JSON.parse(evt.data);}catch(e){return;}if(!msg)return;if(msg.pagination)budgetTotalPages=msg.pagination.pages||msg.pagination.totalPages||1;var stacks=msg.stacks||msg.listings||msg.items||[];if(!Array.isArray(stacks))return;var overBudget=false;stacks.forEach(function(s){var n=normListing(s);if(!n||n.price==null||!n.vs||n.vs==='N/A'||!n.fair)return;if(n.price>budget){overBudget=true;return;}budgetListings.push(n);});if(!autoScanning){var pct=Math.min(93,Math.round((budgetPage/Math.max(1,budgetTotalPages))*100));setSF(pct);setBSt('Page '+budgetPage+'/'+budgetTotalPages+' \u2022 '+budgetListings.length+' candidates');}if(overBudget||budgetPage>=budgetTotalPages||!budgetScanning){budgetScanning=false;try{if(ws.readyState===WebSocket.OPEN)ws.close();}catch(e){}budgetWS=null;if(!autoScanning){setSF(97);setBSt('Optimizing...');}setTimeout(function(){var r=computeKnapsack(budget,minVal);callback(r);if(!autoScanning){setSF(100);setBSt('');}},30);return;}budgetPage++;ws.send(JSON.stringify({type:'params',params:{page:budgetPage,limit:50,sort:'price_asc',search:''}}));};}catch(e){budgetScanning=false;setSF(0);if(autoScanning)callback({chosen:[],totalVal:0,totalCost:0,items:[]});else setBSt('WS blocked.');}}
+function computeKnapsack(budget,minVal){var maxSameEl=document.getElementById('budgetMaxSame');MAX_SAME=maxSameEl?parseInt(maxSameEl.value,10):1;var items=budgetListings.filter(function(it){return it.vs&&it.vs!=='N/A'&&it.fair&&it.price>0&&it.price<=budget&&it.fair.vn>=minVal;});if(!items.length)return{chosen:[],totalVal:0,totalCost:0,items:[]};items.sort(function(a,b){return(b.fair.vn/b.price)-(a.fair.vn/a.price);});var SCALE=100,W=Math.round(budget*SCALE),chosen;if(W<=DP_CENT_CAP&&items.length<=800)chosen=knapsackDP(items,W,SCALE);else chosen=knapsackGreedy(items,budget);chosen=enforceDiversity(chosen);chosen.sort(function(a,b){return b.fair.vn-a.fair.vn;});var totalVal=0,totalCost=0;chosen.forEach(function(it){totalVal+=it.fair.vn;totalCost+=it.price;});return{chosen,totalVal,totalCost,items};}
+function renderBudgetResult(r,budget,isAuto){var resEl=document.getElementById('budgetResults'),bvEl=document.getElementById('budgetBestVal'),brEl=document.getElementById('budgetBestRate');var chosen=r.chosen,totalVal=r.totalVal,totalCost=r.totalCost,items=r.items;if(!chosen||!chosen.length){resEl.innerHTML='<div class="note">No listings found. Try a larger budget or rescan.</div>';setSF(0);return;}if(bvEl)bvEl.textContent=fmtVal(Math.round(totalVal));if(brEl)brEl.textContent=totalVal>0?('$'+(totalCost/(totalVal/1000)).toFixed(4)):'—';var fairMin=(totalVal/1000)*0.009,fairMax=(totalVal/1000)*0.010;var html='<div style="border:1px solid rgba(0,230,118,.12);background:rgba(0,230,118,.025);border-radius:9px;padding:12px;margin-bottom:9px;"><div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--win);margin-bottom:9px;">Best Combo'+(isAuto?' (Auto)':'')+' \u2022 '+chosen.length+' items</div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:7px;">'+mStat('Total Value',fmtVal(Math.round(totalVal)),'var(--win)')+mStat('Spent',fmtUsd(totalCost),'#fff')+mStat('Remaining',fmtUsd(budget-totalCost),'#444')+mStat('Fair Price Range',fmtUsd(fairMin)+' \u2013 '+fmtUsd(fairMax),'#888')+'</div><div style="font-size:9px;color:#2a2a2a;">'+chosen.length+' items from '+items.length+' candidates</div></div>';chosen.forEach(function(item,i){var rate=(item.price/(item.fair.vn/1000)).toFixed(4);var bc='na',bt='?';if(item.verdict==='WIN'){bc='win';bt='WIN';}else if(item.verdict==='FAIR'){bc='fair';bt='FAIR';}else if(item.verdict==='LOSE'){bc='lose';bt='OVERPAY';}var sa=item.fair?(item.fair.max-item.price):null;var savH=sa!==null&&!isNaN(sa)?'<span style="font-size:10px;font-weight:800;color:'+(sa>=0?'var(--win)':'var(--lose)')+';"> '+(sa>=0?'Saving ':'Overpaying ')+esc(fmtUsd(Math.abs(sa)))+'</span>':'';var pr=item.fair?(fmtUsd(item.fair.min)+' \u2013 '+fmtUsd(item.fair.max)):'—';html+='<div class="brow"><div style="font-size:10px;font-weight:800;color:#1e1e1e;min-width:16px;text-align:center;">'+(i+1)+'</div><img src="'+esc(item.img||FALLBACK)+'" style="width:34px;height:34px;object-fit:contain;border-radius:6px;background:#0a0a0a;flex:0 0 auto;" loading="lazy" onerror="this.onerror=null;this.src=FALLBACK"><div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(item.listingName)+'</div><div style="font-size:9px;color:#2a2a2a;text-transform:uppercase;margin-top:1px;">'+esc(item.variantName)+' \u2022 '+esc(item.vs)+'</div><div style="margin-top:3px;display:flex;gap:4px;flex-wrap:wrap;align-items:center;"><span class="badge '+bc+'">'+esc(bt)+'</span><span style="font-size:9px;color:#222;">$'+esc(rate)+'/1k</span>'+savH+'</div></div><div style="text-align:right;flex:0 0 auto;min-width:100px;"><div style="font-size:17px;font-weight:800;color:#fff;">'+esc(fmtUsd(item.price))+'</div><div style="font-size:13px;color:var(--win);font-weight:700;">'+esc(fmtVal(Math.round(item.fair.vn)))+'</div><div style="font-size:9px;color:#222;">Fair: '+esc(pr)+'</div></div></div>';});resEl.innerHTML=html;}
+function mStat(l,v,c){return'<div style="background:rgba(0,0,0,.25);border-radius:6px;padding:8px;border:1px solid var(--border);"><div style="font-size:8px;color:#333;text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px;">'+esc(l)+'</div><div style="font-size:13px;font-weight:800;color:'+c+';">'+esc(v)+'</div></div>';}
+function basePetName(n){return String(n||'').replace(/^(shiny mythic|shiny xl|shiny|mythic|xl)\s+/i,'').trim().toLowerCase();}
+function enforceDiversity(chosen){var counts={},result=[];chosen.forEach(function(item){var b=basePetName(item.listingName);counts[b]=(counts[b]||0)+1;if(counts[b]<=MAX_SAME)result.push(item);});return result;}
+function knapsackDP(items,W,SCALE){var n=items.length,ws=items.map(function(it){return Math.round(it.price*SCALE);}),vs=items.map(function(it){return it.fair.vn;});var dp=new Float64Array(W+1),keep=[];for(var i=0;i<n;i++)keep.push(new Uint8Array(W+1));for(var i=0;i<n;i++){var wi=ws[i],vi=vs[i];if(wi>W)continue;for(var w=W;w>=wi;w--){var c=dp[w-wi]+vi;if(c>dp[w]+1e-9){dp[w]=c;keep[i][w]=1;}}}var bestW=0;for(var w=1;w<=W;w++)if(dp[w]>dp[bestW]+1e-9)bestW=w;var chosen=[],rem=bestW;for(var i=n-1;i>=0;i--)if(rem>=ws[i]&&keep[i][rem]===1){chosen.push(items[i]);rem-=ws[i];}return chosen;}
+function knapsackGreedy(items,budget){var counts={},chosen=[],spent=0;items.forEach(function(it){if(spent+it.price>budget+0.001)return;var b=basePetName(it.listingName);counts[b]=(counts[b]||0)+1;if(counts[b]>MAX_SAME)return;chosen.push(it);spent+=it.price;});if(!chosen.length){var best=null;items.forEach(function(it){if(it.price<=budget&&(!best||it.fair.vn>best.fair.vn))best=it;});if(best)chosen=[best];}return chosen;}
+
+// ── IMPORT FROM BLOXY.TRADE ──
+function openImport(){
+  document.getElementById('importText').value='';
+  document.getElementById('importStatus').textContent='';
+  document.getElementById('importModal').classList.add('show');
+}
+function closeImport(){document.getElementById('importModal').classList.remove('show');}
+
+function runImport(){
+  var raw=document.getElementById('importText').value||'';
+  if(!raw.trim()){document.getElementById('importStatus').textContent='Paste your order history first.';return;}
+  var status=document.getElementById('importStatus');
+  status.textContent='Parsing...';
+
+  // Split into lines, clean up
+  var lines=raw.split('\n').map(function(l){return l.trim();}).filter(function(l){return l.length>0;});
+
+  // State machine: find completed pet orders
+  // Pattern: order block starts with order number (#xxxxx), status "Completed",
+  // then pet name appears twice (duplicate line), then "Bubble Gum Simulator Infinity",
+  // then "Find in Inventory", then "Total", then "$X.XX", then "Paid"
+  var imported=[];
+  var skipped=0;
+  var i=0;
+
+  // We'll scan for the pattern: a name followed by the same name again = pet name
+  // Then look back/forward for price and date
+  // Simpler: find all "Completed" blocks that contain "Find in Inventory"
+
+  // Parse into blocks by order number
+  var blocks=[];
+  var cur=null;
+  for(var i=0;i<lines.length;i++){
+    var l=lines[i];
+    if(/^#\d+$/.test(l)){
+      if(cur)blocks.push(cur);
+      cur={orderId:l,lines:[]};
+    } else if(cur){
+      cur.lines.push(l);
+    }
+  }
+  if(cur)blocks.push(cur);
+
+  // Process each block
+  blocks.forEach(function(block){
+    var ls=block.lines;
+    // Must be Completed and have Find in Inventory (= pet purchase)
+    var isCompleted=ls.indexOf('Completed')!==-1;
+    var hasFindInInventory=ls.indexOf('Find in Inventory')!==-1;
+    if(!isCompleted||!hasFindInInventory){skipped++;return;}
+
+    // Extract date — format: "Mar 15, 2026, 09:39 PM" or similar
+    var dateStr='';
+    for(var j=0;j<ls.length;j++){
+      if(/[A-Za-z]+ \d+, \d{4}/.test(ls[j])){
+        var dm=ls[j].match(/([A-Za-z]+ \d+, \d{4})/);
+        if(dm){
+          // Convert "Mar 15, 2026" -> "2026-03-15"
+          var d=new Date(dm[1]);
+          if(!isNaN(d.getTime()))dateStr=d.toISOString().split('T')[0];
+        }
+        break;
+      }
+    }
+
+    // Extract pet name — it appears as two consecutive identical lines before "Bubble Gum Simulator Infinity"
+    var petName='';
+    for(var j=0;j<ls.length-1;j++){
+      if(ls[j]===ls[j+1]&&ls[j].length>2&&ls[j]!=='Completed'&&ls[j]!=='Paid'&&ls[j]!=='Total'){
+        // Check it's before "Bubble Gum Simulator Infinity"
+        var bgsiIdx=ls.indexOf('Bubble Gum Simulator Infinity');
+        if(bgsiIdx===-1||j<bgsiIdx){
+          petName=ls[j];
+          break;
+        }
+      }
+    }
+    if(!petName){skipped++;return;}
+
+    // Extract price — line that starts with $ after "Total"
+    var price=null;
+    var totalIdx=ls.lastIndexOf('Total');
+    if(totalIdx!==-1){
+      for(var j=totalIdx;j<ls.length;j++){
+        var pm=ls[j].match(/^\$?([\d.]+)$/);
+        if(pm){price=parseFloat(pm[1]);break;}
+      }
+    }
+    if(!price||isNaN(price)){skipped++;return;}
+
+    // Try to match pet name to rawData
+    var matched=findPetByImportName(petName);
+
+    var entry={
+      id:Date.now()+'_'+Math.random().toString(36).slice(2,7)+'_'+imported.length,
+      _importKey:block.orderId+'|'+petName+'|'+price, // unique per order line
+      name:petName,
+      vk:matched?matched.vk:'Normal',
+      vs:matched?matched.vs:'?',
+      vn:matched?matched.vn:0,
+      img:matched?matched.img:'',
+      pricePaid:price,
+      date:dateStr||new Date().toISOString().split('T')[0],
+      notes:'bloxy.trade import',
+      addedAt:Date.now()+imported.length
+    };
+    imported.push(entry);
+  });
+
+  if(!imported.length){
+    status.textContent='No completed pet purchases found. Make sure you copied the full page text.';
+    return;
+  }
+
+  // Deduplicate — only skip if orderId+name+price+date all match (exact same order line)
+  var added=0,dupes=0;
+  imported.forEach(function(entry){
+    // Use orderId+name+price as the real unique key so multiple buys of same pet are allowed
+    var isDupe=portfolio.some(function(p){
+      return p._importKey&&p._importKey===entry._importKey;
+    });
+    if(isDupe){dupes++;return;}
+    portfolio.push(entry);
+    added++;
+  });
+
+  scheduleFbSave();
+  renderPortfolio();
+  closeImport();
+
+  var msg=added+' pet'+(added!==1?'s':'')+' imported';
+  if(dupes>0)msg+=' \u2022 '+dupes+' duplicate'+(dupes!==1?'s':'')+' skipped';
+  if(skipped>0)msg+=' \u2022 '+skipped+' non-pet orders skipped';
+  // Brief toast on profile page
+  var pl=document.getElementById('portList');
+  var toast=document.createElement('div');
+  toast.style.cssText='position:fixed;bottom:20px;right:20px;background:#0c0c0c;border:1px solid rgba(0,230,118,.3);color:var(--win);padding:10px 16px;border-radius:8px;font-size:12px;font-weight:700;z-index:9999;';
+  toast.textContent=msg;
+  document.body.appendChild(toast);
+  setTimeout(function(){toast.remove();},3500);
+}
+
+function findPetByImportName(name){
+  var nameLower=name.toLowerCase().trim();
+
+  // Step 1: detect variant from name prefix — try longest prefix first
+  var prefixMap=[
+    {prefix:'shiny mythic ',vk:'ShinyMythic'},
+    {prefix:'shiny xl ',    vk:'ShinyXL'},
+    {prefix:'mythic xl ',   vk:'ShinyMythic'}, // edge case
+    {prefix:'shiny ',       vk:'Shiny'},
+    {prefix:'mythic ',      vk:'Mythic'},
+    {prefix:'xl ',          vk:'XL'},
+    {prefix:'og ',          vk:'Normal'},  // OG items are Normal variant
+  ];
+
+  var guessedVk=null;
+  var strippedName=nameLower;
+
+  for(var p=0;p<prefixMap.length;p++){
+    if(nameLower.startsWith(prefixMap[p].prefix)){
+      guessedVk=prefixMap[p].vk;
+      // Don't strip — the full name IS the pet name in the API (e.g. "Mythic Elegant Emerald")
+      break;
+    }
+  }
+
+  // Step 2: try exact match in guessed variant first, then all variants
+  var searchOrder=guessedVk
+    ?[guessedVk].concat(Object.keys(VCFG).filter(function(k){return k!==guessedVk;}))
+    :Object.keys(VCFG);
+
+  for(var i=0;i<searchOrder.length;i++){
+    var k=searchOrder[i],list=rawData[k]||[];
+    for(var j=0;j<list.length;j++){
+      if(list[j].name.toLowerCase()===nameLower)return list[j];
+    }
+  }
+
+  // Step 3: no-spaces fuzzy match
+  var ns=nameLower.replace(/\s+/g,'');
+  for(var i=0;i<searchOrder.length;i++){
+    var k=searchOrder[i],list=rawData[k]||[];
+    for(var j=0;j<list.length;j++){
+      if(list[j].name.toLowerCase().replace(/\s+/g,'')===ns)return list[j];
+    }
+  }
+
+  return null;
+}
+
+// ── PROFILE / PORTFOLIO ──
+function openAddPet(){document.getElementById('portSearch').value='';document.getElementById('portPricePaid').value='';document.getElementById('portDate').value=new Date().toISOString().split('T')[0];document.getElementById('portNotes').value='';document.getElementById('portAddStatus').textContent='';document.getElementById('portDropdown').style.display='none';portSelectedPet=null;document.getElementById('addPetModal').classList.add('show');}
+function closeAddPet(){document.getElementById('addPetModal').classList.remove('show');}
+
+function portSearchInput(){var q=(document.getElementById('portSearch').value||'').toLowerCase().trim();var dd=document.getElementById('portDropdown');portSelectedPet=null;if(!q){dd.style.display='none';return;}var results=[],keys=Object.keys(VCFG);for(var i=0;i<keys.length&&results.length<10;i++){var list=rawData[keys[i]]||[];for(var j=0;j<list.length&&results.length<10;j++)if(list[j].name.toLowerCase().includes(q))results.push(list[j]);}if(!results.length){dd.style.display='none';return;}dd.style.display='block';var html='';results.forEach(function(it){html+='<div class="ddi" data-name="'+esc(it.name)+'" data-vk="'+esc(it.vk)+'"><img src="'+esc(it.img||FALLBACK)+'" style="width:22px;height:22px;object-fit:contain;border-radius:3px;" onerror="this.onerror=null;this.src=FALLBACK"><span style="font-size:11px;font-weight:600;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(it.name)+'</span><span style="font-size:9px;color:#2a2a2a;font-weight:600;text-transform:uppercase;">'+esc(VCFG[it.vk].l)+'</span></div>';});dd.innerHTML=html;dd.querySelectorAll('.ddi').forEach(function(item){item.addEventListener('click',function(){var name=this.getAttribute('data-name'),vk=this.getAttribute('data-vk');var list=rawData[vk]||[];portSelectedPet=list.find(function(it){return it.name===name;})||null;document.getElementById('portSearch').value=name+' ('+VCFG[vk].l+')';dd.style.display='none';});});}
+
+async function savePortPet(){
+  if(!portSelectedPet){document.getElementById('portAddStatus').textContent='Select a pet first.';return;}
+  var pricePaid=parseFloat(document.getElementById('portPricePaid').value);
+  if(isNaN(pricePaid)||pricePaid<=0){document.getElementById('portAddStatus').textContent='Enter a valid price.';return;}
+  var date=document.getElementById('portDate').value||new Date().toISOString().split('T')[0];
+  var notes=document.getElementById('portNotes').value||'';
+  var entry={id:Date.now()+'_'+Math.random().toString(36).slice(2,7),name:portSelectedPet.name,vk:portSelectedPet.vk,vs:portSelectedPet.vs,vn:portSelectedPet.vn,img:portSelectedPet.img,pricePaid,date,notes,addedAt:Date.now()};
+  portfolio.push(entry);
+  scheduleFbSave();
+  closeAddPet();
+  renderPortfolio();
+}
+
+async function removePortPet(id){
+  portfolio=portfolio.filter(function(p){return p.id!==id;});
+  scheduleFbSave();
+  renderPortfolio();
+}
+
+function getCurrentValue(entry){var list=rawData[entry.vk]||[];var found=list.find(function(it){return it.name===entry.name;});return found?{vn:found.vn,vs:found.vs,demand:found.demand,trend:found.trend}:null;}
+
+function getLevel(totalSpent){
+  // Level thresholds — every $25 increment
+  // Level 1: $0-$25, Level 2: $25-$50, Level 3: $50-$100, then +$50 per level
+  var thresholds=[0,25,50,100,150,200,300,400,500,750,1000,1500,2000,3000,5000,7500,10000];
+  var level=1;
+  for(var i=1;i<thresholds.length;i++){
+    if(totalSpent>=thresholds[i])level=i+1;else break;
+  }
+  var curFloor=thresholds[Math.min(level-1,thresholds.length-1)]||0;
+  var nextThresh=thresholds[level]||null;
+  var pct=nextThresh?(Math.min((totalSpent-curFloor)/(nextThresh-curFloor),1)*100):100;
+  return{level,curFloor,nextThresh,pct,totalSpent};
+}
+
+function renderPortfolio(){
+  var listEl=document.getElementById('portList');
+  if(!portfolio.length){
+    listEl.innerHTML='<div class="note">No pets added yet. Click <b>+ Add Pet</b> or <b>Import Orders</b> to start tracking.</div>';
+    document.getElementById('portTotalPets').textContent='0';
+    document.getElementById('portTotalSpent').textContent='—';
+    document.getElementById('portTotalVal').textContent='—';
+    var pe=document.getElementById('portPnl');pe.textContent='—';pe.style.color='var(--muted)';
+    document.getElementById('portLevelBlock').style.display='none';
+    return;
+  }
+  var totalSpent=0,totalBGSIVal=0,hasAll=true;
+  portfolio.forEach(function(e){
+    totalSpent+=e.pricePaid;
+    var cur=getCurrentValue(e);
+    if(cur){totalBGSIVal+=cur.vn;}
+    else if(e.vn){totalBGSIVal+=e.vn;}
+    else hasAll=false;
+  });
+  document.getElementById('portTotalPets').textContent=portfolio.length;
+  document.getElementById('portTotalSpent').textContent=fmtUsd(totalSpent);
+  // Show total as BGSI value (e.g. 15.3M) not USD
+  document.getElementById('portTotalVal').textContent=(hasAll?'':'~')+fmtVal(Math.round(totalBGSIVal));
+  // P&L in USD using fair mid price
+  var totalFairMid=0;
+  portfolio.forEach(function(e){
+    var cur=getCurrentValue(e);
+    if(cur){var fr=fairRange(cur.vs,cur.demand,cur.trend||'Stable');totalFairMid+=(fr?(fr.min+fr.max)/2:0);}
+  });
+  var pnl=totalFairMid-totalSpent;
+  var pe=document.getElementById('portPnl');
+  pe.textContent=(pnl>=0?'+':'')+fmtUsd(pnl);
+  pe.style.color=pnl>0?'var(--win)':(pnl<0?'var(--lose)':'var(--muted)');
+
+  // Level bar
+  var lv=getLevel(totalSpent);
+  document.getElementById('portLevelBlock').style.display='block';
+  document.getElementById('portLevelLabel').textContent='Level '+lv.level;
+  document.getElementById('portLevelBar').style.width=lv.pct+'%';
+  if(lv.nextThresh){
+    document.getElementById('portLevelProgress').textContent=fmtUsd(lv.totalSpent)+' / '+fmtUsd(lv.nextThresh);
+    document.getElementById('portLevelNext').textContent=fmtUsd(lv.nextThresh-lv.totalSpent)+' more to Level '+(lv.level+1);
+  } else {
+    document.getElementById('portLevelProgress').textContent=fmtUsd(lv.totalSpent);
+    document.getElementById('portLevelNext').textContent='Max level reached';
+  }
+
+  var html='';
+  var sortMode=(document.getElementById('portSort')&&document.getElementById('portSort').value)||'date_desc';
+  var sorted=portfolio.slice().map(function(entry){
+    var cur=getCurrentValue(entry);
+    var fr=cur?fairRange(cur.vs,cur.demand,cur.trend||'Stable'):null;
+    var curMid=fr?(fr.min+fr.max)/2:null;
+    var petPnl=curMid!==null?(curMid-entry.pricePaid):null;
+    var curVn=cur?cur.vn:entry.vn;
+    return{entry,cur,fr,curMid,petPnl,curVn};
+  });
+  sorted.sort(function(a,b){
+    var ap=parseFloat(a.entry.pricePaid)||0,bp=parseFloat(b.entry.pricePaid)||0;
+    var av=a.curVn||0,bv=b.curVn||0;
+    var at=a.entry.addedAt||0,bt2=b.entry.addedAt||0;
+    var apnl=a.petPnl!=null?a.petPnl:null,bpnl=b.petPnl!=null?b.petPnl:null;
+    switch(sortMode){
+      case'date_asc':  return at-bt2;
+      case'val_desc':  return bv-av;
+      case'val_asc':   return av-bv;
+      case'paid_desc': return bp-ap;
+      case'paid_asc':  return ap-bp;
+      case'pnl_desc':  return(bpnl!=null?bpnl:-999999)-(apnl!=null?apnl:-999999);
+      case'pnl_asc':   return(apnl!=null?apnl:999999)-(bpnl!=null?bpnl:999999);
+      default:         return bt2-at;
+    }
+  });
+  sorted.forEach(function(item){
+    var entry=item.entry,cur=item.cur,fr=item.fr,curMid=item.curMid,petPnl=item.petPnl;
+    // Value change vs when added
+    var chgHtml='';
+    if(cur){
+      var diff=cur.vn-entry.vn;
+      var pct=entry.vn>0?(diff/entry.vn*100):0;
+      var cls=diff>0?'up':(diff<0?'down':'flat');
+      chgHtml='<div class="port-pet-change '+cls+'">'+(diff!==0?(diff>=0?'+':'')+fmtVal(Math.round(diff))+' ('+pct.toFixed(1)+'%) \u2022 ':'')+esc(cur.trend||'Stable')+'</div>';
+    }
+    // P&L
+    var pnlHtml=petPnl!==null?'<div class="port-pet-pnl '+(petPnl>=0?'up':'down')+'">'+(petPnl>=0?'+':'')+esc(fmtUsd(petPnl))+'</div>':'';
+    var vkLabel=VCFG[entry.vk]?VCFG[entry.vk].l:entry.vk;
+    var vkCls=varClass(entry.vk||'Normal');
+    html+='<div class="port-pet-row">'
+      +'<img class="port-pet-img" src="'+esc(entry.img||FALLBACK)+'" loading="lazy" onerror="this.onerror=null;this.src=FALLBACK">'
+      +'<div class="port-pet-info">'
+        +'<div class="port-pet-name">'+esc(entry.name)+'</div>'
+        +'<div class="port-pet-meta"><span class="'+vkCls+'">'+esc(vkLabel)+'</span></div>'
+        +'<div class="port-pet-meta" style="color:#333;margin-top:1px;">'+esc(entry.date)+(entry.notes&&entry.notes!=='bloxy.trade import'?' \u2022 '+esc(entry.notes):'')+'</div>'
+        +chgHtml
+      +'</div>'
+      +'<div class="port-pet-right">'
+        +'<div class="port-pet-val">'+(cur?esc(cur.vs):esc(entry.vs||'?'))+'</div>'
+        +'<div class="port-pet-paid">Paid '+esc(fmtUsd(entry.pricePaid))+'</div>'
+        +pnlHtml
+        +'<button onclick="removePortPet(\''+esc(entry.id)+'\')" style="margin-top:4px;background:transparent;border:1px solid var(--border);color:#2a2a2a;padding:2px 7px;font-size:8px;border-radius:3px;cursor:pointer;font-family:inherit;transition:.1s;" onmouseover="this.style.color=\'var(--lose)\'" onmouseout="this.style.color=\'#2a2a2a\'">Remove</button>'
+      +'</div>'
+    +'</div>';
+  });
+  listEl.innerHTML=html;
+}
+
+// ── WEBHOOK ──
+function flushWh(){whTimer=null;if(!whSettings.url||!whQueue.length)return;var batch=whQueue.splice(0,WH_BATCH);var embeds=batch.map(function(l){var color=l.verdict==='WIN'?0x00e676:(l.verdict==='FAIR'?0xfacc15:0xff4444),tag=l.verdict==='WIN'?'[WIN]':(l.verdict==='FAIR'?'[FAIR]':'[LOSE]');return{title:tag+' '+l.listingName,color,fields:[{name:'Price',value:fmtUsd(l.price),inline:true},{name:'Value',value:l.vs||'N/A',inline:true},{name:'Deal',value:l.verdict,inline:true},{name:'Fair',value:l.fair?(fmtUsd(l.fair.min)+' \u2013 '+fmtUsd(l.fair.max)):'N/A',inline:true},{name:'Demand',value:l.demand||'Unknown',inline:true},{name:'Trend',value:l.trend||'Stable',inline:true}],thumbnail:l.img?{url:l.img}:undefined,footer:{text:'BGSI Market Helper'},timestamp:new Date().toISOString()};});var body={embeds};if(whSettings.ping)body.content=whSettings.ping;fetch(whSettings.url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){if(r.status===429){whQueue.unshift.apply(whQueue,batch);whTimer=setTimeout(flushWh,5000);}else if(whQueue.length)whTimer=setTimeout(flushWh,WH_MS);}).catch(function(){if(whQueue.length)whTimer=setTimeout(flushWh,WH_MS*2);});}
+function queueWh(l){if(!whSettings.url)return;var key=l.listingName+'|'+l.price;if(notifiedKeys.has(key))return;notifiedKeys.add(key);if(whQueue.length>=50)return;whQueue.push(l);if(!whTimer)whTimer=setTimeout(flushWh,100);}
+function checkAndNotify(l){if(!whSettings.url)return;if(!l.price||!l.vs||l.vs==='N/A')return;var lk=l.listingName+'|'+l.price;if(seenKeys.has(lk))return;if(whSettings.mode==='win'&&l.verdict!=='WIN')return;if(whSettings.mode==='fair'&&l.verdict!=='WIN'&&l.verdict!=='FAIR')return;if(whSettings.minPrice!=null&&l.price<whSettings.minPrice)return;if(whSettings.maxPrice!=null&&l.price>whSettings.maxPrice)return;if(whSettings.watchlist.length){var match=false;for(var i=0;i<whSettings.watchlist.length;i++)if(whSettings.watchlist[i].name.toLowerCase()===l.listingName.toLowerCase()){match=true;break;}if(!match)return;}queueWh(l);}
+
+function saveSt(){
+  whSettings.url=(document.getElementById('whUrl').value||'').trim();
+  var mn=parseFloat(document.getElementById('whMin').value),mx=parseFloat(document.getElementById('whMax').value);
+  whSettings.minPrice=isNaN(mn)?null:mn;whSettings.maxPrice=isNaN(mx)?null:mx;
+  whSettings.ping=(document.getElementById('whPing').value||'').trim();
+  try{localStorage.setItem('bgsi_wh2',JSON.stringify(whSettings));}catch(e){}
+  scheduleFbSave(); // save to Firebase
+}
+function applySettings(s){
+  whSettings=Object.assign(whSettings,s);
+  var u=document.getElementById('whUrl');if(u)u.value=whSettings.url||'';
+  var mn=document.getElementById('whMin');if(mn&&whSettings.minPrice!=null)mn.value=whSettings.minPrice;
+  var mx=document.getElementById('whMax');if(mx&&whSettings.maxPrice!=null)mx.value=whSettings.maxPrice;
+  var pg=document.getElementById('whPing');if(pg)pg.value=whSettings.ping||'';
+  setWhMode(whSettings.mode||'win',true);renderWL();
+}
+function loadSt(){try{var s=localStorage.getItem('bgsi_wh2');if(s)applySettings(JSON.parse(s));}catch(e){}}
+function clearSt(){whSettings={url:'',mode:'win',minPrice:null,maxPrice:null,ping:'',watchlist:[]};try{localStorage.removeItem('bgsi_wh2');}catch(e){}applySettings(whSettings);setWhSt('Reset.',false);scheduleFbSave();}
+function setWhMode(m,silent){if(m==='all')m='win';whSettings.mode=m;['win','fair'].forEach(function(x){var b=document.getElementById('wh-'+x);if(b)b.classList.toggle('active',x===m);});if(!silent)saveSt();}
+function setWhSt(msg,err){var el=document.getElementById('whStatus');if(!el)return;el.textContent=msg;el.style.color=err?'var(--lose)':'var(--win)';}
+function renderWLSearch(){var q=(document.getElementById('whSearch').value||'').toLowerCase().trim(),dd=document.getElementById('whDropdown');if(!dd)return;if(!q){dd.style.display='none';return;}var results=[],keys=Object.keys(VCFG);for(var i=0;i<keys.length&&results.length<12;i++){var list=rawData[keys[i]]||[];for(var j=0;j<list.length&&results.length<12;j++)if(list[j].name.toLowerCase().includes(q))results.push(list[j]);}if(!results.length){dd.style.display='none';return;}dd.style.display='block';var html='';results.forEach(function(it){html+='<div class="ddi" data-name="'+esc(it.name)+'" data-vk="'+esc(it.vk)+'"><img src="'+esc(it.img||FALLBACK)+'" style="width:22px;height:22px;object-fit:contain;border-radius:3px;" onerror="this.onerror=null;this.src=FALLBACK"><span style="font-size:11px;font-weight:600;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(it.name)+'</span><span style="font-size:8px;color:#2a2a2a;font-weight:600;text-transform:uppercase;">'+esc(VCFG[it.vk].l)+'</span></div>';});dd.innerHTML=html;dd.querySelectorAll('.ddi').forEach(function(item){item.addEventListener('click',function(){addToWL(this.getAttribute('data-name'),this.getAttribute('data-vk'));});});}
+function addToWL(name,vk){if(!whSettings.watchlist.find(function(w){return w.name===name&&w.vk===vk;})){whSettings.watchlist.push({name,vk});saveSt();}var s=document.getElementById('whSearch');if(s)s.value='';var dd=document.getElementById('whDropdown');if(dd)dd.style.display='none';renderWL();}
+function removeFromWL(name,vk){whSettings.watchlist=whSettings.watchlist.filter(function(w){return!(w.name===name&&w.vk===vk);});saveSt();renderWL();}
+function renderWL(){var el=document.getElementById('whWatchlist');if(!el)return;if(!whSettings.watchlist.length){el.innerHTML='<span style="font-size:10px;color:#222;">None — all pets</span>';return;}var html='';whSettings.watchlist.forEach(function(w){var list=rawData[w.vk]||[],found=list.find(function(it){return it.name===w.name;}),img=found?found.img:FALLBACK;html+='<div class="wlchip"><img src="'+esc(img)+'" onerror="this.onerror=null;this.src=FALLBACK"><span>'+esc(w.name)+'</span><span style="color:#2a2a2a;font-size:8.5px;">'+esc(VCFG[w.vk]?VCFG[w.vk].l:w.vk)+'</span><button onclick="removeFromWL(\''+esc(w.name)+'\',\''+esc(w.vk)+'\')">&#x00D7;</button></div>';});el.innerHTML=html;}
+async function testWh(){var url=(document.getElementById('whUrl').value||'').trim();if(!url){setWhSt('Add a webhook URL first.',true);return;}whSettings.url=url;saveSt();setWhSt('Sending...',false);var mode=whSettings.mode==='win'?'WIN Only':'WIN + FAIR';var embed={title:'BGSI Market Helper \u2014 Test',color:0x00e676,description:'Connected.',fields:[{name:'Mode',value:mode,inline:true},{name:'Watchlist',value:whSettings.watchlist.length?whSettings.watchlist.map(function(w){return w.name;}).join(', '):'All pets',inline:false}],footer:{text:'BGSI Market Helper'},timestamp:new Date().toISOString()};var body={embeds:[embed]};if(whSettings.ping)body.content=whSettings.ping;try{var r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});if(r.ok||r.status===204)setWhSt('Sent. Check Discord.',false);else setWhSt('Error '+r.status,true);}catch(e){setWhSt('Failed (CORS?)',true);}}
+
+document.addEventListener('click',function(e){
+  if(!e.target.closest('#whSearch')&&!e.target.closest('#whDropdown')){var dd=document.getElementById('whDropdown');if(dd)dd.style.display='none';}
+  if(!e.target.closest('#portSearch')&&!e.target.closest('#portDropdown')){var dd2=document.getElementById('portDropdown');if(dd2)dd2.style.display='none';}
+  if(e.target===document.getElementById('importModal'))closeImport();
+  if(e.target===document.getElementById('addPetModal'))closeAddPet();
+});
+
+document.addEventListener('DOMContentLoaded',function(){
+  setTab('buy');
+  document.getElementById('wdFlat').value='0.00';
+  document.getElementById('wdPct').value='0.00';
+  calcWithdraw();loadSt();initUser();preloadAll();
+});
+</script>
+</body>
+</html>
